@@ -443,7 +443,7 @@ details summary{cursor:pointer;color:var(--fg-subtle);font-size:13px;padding:6px
 const BANK = JSON.parse(document.getElementById('bank').textContent);
 const PLAN = JSON.parse(document.getElementById('plan').textContent);
 const RES  = JSON.parse(document.getElementById('res').textContent);
-const BUILD = '2026-10-03 03:45';
+const BUILD = '2026-10-03 04:08';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -990,7 +990,7 @@ VIEWS.drill = (o)=>{
   if (o.act==='vocab_srs'){ timerNode.classList.add('hidden'); const diag=/진단/.test(o.note||''); const nNew = o.noNew? 0 : diag? (o.count||100) : (o.blockKey? Math.min(newWordsToday(), o.count||25) : settings.newWords); runVocab(body, nNew, o.blockKey&&!diag? (o.count||40) : 999, r=>finishBlock({c:r.c, t:r.t, text:r.t? `${r.t}장 중 첫 시도 ${r.c}장 정답. 틀린 카드는 오늘 다시 나옴.` : ''})); return; }
   if (o.act==='mock'){ body.append(el('div',{class:'panel'}, el('div',{class:'h5'}, '풀 모의고사'), el('p',{class:'small'}, '타이머를 켜고 중단 없이 4영역 연속. 끝나면 결과가 기록 탭에 자동 반영. 오답은 바로 이 앱의 오답 복습으로.'),
     el('div',{class:'row'}, el('a',{class:'btn',href:'mock.html#full'}, '모의고사 열기'), el('button',{class:'btn sec',type:'button',onclick:()=>{ LOG.add({type:'mock', id:'mock-'+today(), c:0, t:0}); finishBlock({c:0,t:0,text:'모의고사 블록 완료 처리'}); }}, '완료 처리')))); return; }
-  if (o.act==='review'){ const ws=wrongItems(14).slice(0, Math.max(3,o.count||5)); if (!ws.length){ body.append(el('div',{class:'note ok'}, '최근 14일 오답 없음. 대신 약점 유형 1세트 진행 권장.')); const s=weakestSection(); const act=(FOCUS_ACTS[s]||[])[0]; if (act) body.append(el('div',{class:'row task'}, el('button',{class:'btn',type:'button',onclick:()=>go('drill',{...o, act, count:1})}, `${ACT[act].name} 1세트`))); return; }
+  if (o.act==='review'){ const ws=wrongItems(14).slice(0, Math.max(3,o.count||5)); if (!ws.length){ body.append(el('div',{class:'note ok'}, '최근 14일 이 앱의 오답 기록 없음. 모의고사 오답은 mock.html 결과 화면에서 복기하고, 끝나면 완료 처리.'), el('div',{class:'row task'}, el('button',{class:'btn',type:'button',onclick:()=>finishBlock({c:0,t:0,text:'리뷰 블록 완료 처리'})}, '완료 처리'))); const s=weakestSection(); const act=(FOCUS_ACTS[s]||[])[0]; if (act) body.append(el('div',{class:'row task'}, el('button',{class:'btn',type:'button',onclick:()=>go('drill',{...o, act, count:1})}, `${ACT[act].name} 1세트`))); return; }
     const byType={}; ws.forEach(w=>(byType[w.type]=byType[w.type]||[]).push(w.id));
     const first=Object.keys(byType)[0]; body.append(el('div',{class:'note'}, `오답 ${ws.length}개 중 ${ACT[first].name}부터. 해설까지 읽고 틀린 이유를 어휘, 구조, 속도 중 하나로 분류.`));
     o={...o, act:first, forceIds:byType[first], count:byType[first].length}; }
