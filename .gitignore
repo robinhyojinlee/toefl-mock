@@ -1,3 +1,6 @@
 build.py
 template.html
 items/
+build_coach.py
+coach-template.html
+gen/
