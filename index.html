@@ -321,6 +321,56 @@ select{max-width:100%}
 .tsheet.hide-fix .mvt.shown{color:var(--fg-base)!important;background:var(--bg-selected)}
 .tsheet.hide-fix .fix{color:transparent!important;background:var(--bg-muted)!important;border-radius:4px;cursor:pointer;user-select:none}
 .tsheet.hide-fix .fix.shown{color:var(--fg-base)!important;background:var(--bg-selected)!important}
+
+/* ---- polish pass: grouped surfaces, quieter chrome ---- */
+body{background:var(--bg-page)}
+:root{--bg-page:#F5F5F4}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg-page:#191614; } }
+:root[data-theme="dark"]{--bg-page:#191614}
+.top{background:color-mix(in srgb, var(--bg-page) 86%, transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:0}
+.top .in{padding:10px 16px}
+.logo{width:26px;height:26px;border-radius:8px;font-size:11px}
+.top .title{font-size:15px;line-height:22px}
+.top .meta{font-size:12px;font-weight:600;color:var(--fg-primary);background:var(--bg-raised);padding:4px 10px;border-radius:9999px}
+main{max-width:720px}
+.panel,.list{border:0;border-radius:14px}
+.list .item{border-top:0;position:relative}
+.list .item + .item::before,.list > div + div > .item::before{content:'';position:absolute;top:0;left:16px;right:0;height:1px;background:var(--bd-base)}
+.list .item.blk + .item.blk::before{left:52px}
+.item{min-height:52px}
+.item .t{font-size:15px;line-height:21px}
+.item .d{font-size:13px;line-height:18px}
+.sec-h .h5,.h5{font-size:17px;line-height:24px}
+.hello h1{font-size:26px;line-height:34px}
+.hello .sub2{font-size:14px;color:var(--fg-muted)}
+.next{border-radius:18px;padding:18px 20px}
+.item.is-next{background:transparent;box-shadow:inset 3px 0 0 var(--bg-primary)}
+.item.is-next .t{color:var(--fg-primary)}
+.stat{background:var(--bg-raised)}
+.note{background:var(--bg-raised)}
+.band{border:0}
+.flash{border:0;border-radius:16px;padding:20px}
+.flash .ex,.sense .ex,.skel,.cue,.vin,.gap input{font-family:var(--font-ui)!important;letter-spacing:-0.1px}
+.flash .ex{font-size:16px;line-height:26px;color:var(--fg-subtle)}
+.vin{font-size:18px;border:1.5px solid var(--bd-subtle)}
+.vin:focus,textarea.write:focus{box-shadow:0 0 0 2px var(--bd-focus-ring);border-color:var(--bd-focus)}
+.btn{border-radius:10px}
+.btn.ghost{color:var(--fg-subtle);padding:8px 10px}
+.drill-head{top:46px;background:var(--bg-page)}
+.drill-head > .btn.ghost:first-child{padding-left:4px}
+.drill-head > .btn.ghost:first-child::before{content:'';width:8px;height:8px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-right:2px}
+.passage{border:0}
+.opt{border-color:transparent;background:var(--bg-raised)}
+.opt:has(input:checked){border-color:var(--bd-focus)}
+.wd i{width:30px;height:30px}
+.wd.future i{background:transparent;box-shadow:inset 0 0 0 1px var(--bd-subtle);color:var(--fg-disabled)}
+#mobTabs{background:color-mix(in srgb, var(--bg-raised) 88%, transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+#mobTabs button[aria-current="page"]{background:transparent;color:var(--fg-primary)}
+#mobTabs button[aria-current="page"] svg{stroke-width:2.2}
+.tabs button[aria-current="page"]{background:var(--bg-raised)}
+.chip{border-color:transparent;background:var(--bg-raised)}
+.blk .d{-webkit-line-clamp:1}
+.legend{display:none}
 </style>
 </head>
 <body>
@@ -520,7 +570,7 @@ const TPL = JSON.parse(document.getElementById('tpl').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-03 22:20';
+const BUILD = '2026-10-03 23:08';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -603,6 +653,7 @@ const ACT = {
   listen_repeat:   {name:'Listen and Repeat', sec:'speaking', bank:()=>BANK.sw.listen_repeat, unit:'문장'},
   interview:       {name:'Take an Interview', sec:'speaking', bank:()=>BANK.sw.interviews, unit:'문항'},
   mock:            {name:'풀 모의고사', sec:'all', unit:'회'},
+  vocab_review:    {name:'단어 다시 퀴즈', sec:'vocab', unit:'장'},
   template:        {name:'템플릿 암기', sec:'all', unit:'개'},
   review:          {name:'오답 복습', sec:'all', unit:'개'}
 };
@@ -889,8 +940,9 @@ function freshOrder(list){
   return out;
 }
 const V = { get(){ return store.get('vocab',{}); }, set(v){ store.set('vocab',v); },
-  grade(w,ok){ const st=this.get(); const r=st[w]||{box:0,due:null,seen:0,wrong:0}; r.seen++; if (ok){ r.box=Math.min(6,(r.box||0)+1); const ne=nextExam(); const cap= ne? Math.max(1, Math.floor(ne.days*0.2)) : 99; r.due=addDays(today(),Math.min(INTERVALS[r.box], cap)); } else { r.box=0; r.wrong++; r.known=false; r.due=today(); } st[w]=r; this.set(st); },
-  known(w){ const st=this.get(); const r=st[w]||{box:0,due:null,seen:0,wrong:0}; r.seen++; r.box=6; r.known=true; r.due=addDays(today(),90); st[w]=r; this.set(st); },
+  mark(r,res){ const t=today(); r.days=[...(r.days||[]).filter(d=>d!==t), t].slice(-14); r.res=Object.assign({}, r.res||{}); if (!r.res[t] || res==='miss') r.res[t]=res; const ks=Object.keys(r.res).sort(); while (ks.length>14) delete r.res[ks.shift()]; },
+  grade(w,ok){ const st=this.get(); const r=st[w]||{box:0,due:null,seen:0,wrong:0}; r.seen++; this.mark(r, ok?'ok':'miss'); if (ok){ r.box=Math.min(6,(r.box||0)+1); const ne=nextExam(); const cap= ne? Math.max(1, Math.floor(ne.days*0.2)) : 99; r.due=addDays(today(),Math.min(INTERVALS[r.box], cap)); } else { r.box=0; r.wrong++; r.known=false; r.due=today(); } st[w]=r; this.set(st); },
+  known(w){ const st=this.get(); const r=st[w]||{box:0,due:null,seen:0,wrong:0}; r.seen++; this.mark(r,'known'); r.box=6; r.known=true; r.due=addDays(today(),90); st[w]=r; this.set(st); },
   stats(){ const st=this.get(), t=today(); const studied=VOCAB.filter(x=>st[x.w]); return {st, studied, due:studied.filter(x=>st[x.w].due && st[x.w].due<=t), fresh:freshOrder(VOCAB.filter(x=>!st[x.w])), mastered:studied.filter(x=>(st[x.w].box||0)>=4).length, known:studied.filter(x=>st[x.w].known).length}; } };
 const esc = w => w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function findForm(ex, w){ // headword or an inflected form (yields, analyzed, proliferating)
@@ -916,8 +968,9 @@ function cueSentence(x){ // pick a sense example that contains the word, blank i
   const ss=senses(x); for (const s of shuffle(ss)){ const f=s.ex && findForm(s.ex,x.w); if (f){ const keep=Math.ceil(f.t.length/2); return {s, before:s.ex.slice(0,f.i), shown:f.t.slice(0,keep), hidden:f.t.slice(keep), after:s.ex.slice(f.i+f.t.length), form:f.t}; } }
   return null;
 }
-function runVocab(host, nNew, maxCards, onDone){
-  const S=V.stats(); const dues=shuffle(S.due).slice(0, maxCards); let queue=dues.concat(S.fresh.slice(0, Math.max(0, Math.min(nNew, maxCards-dues.length))));
+function runVocab(host, nNew, maxCards, onDone, opts={}){
+  const VG=opts.practice? ()=>{} : (w,ok)=>V.grade(w,ok), VK=opts.practice? ()=>{} : w=>V.known(w);
+  const S=V.stats(); const dues=shuffle(S.due).slice(0, maxCards); let queue= opts.queue? shuffle(opts.queue) : dues.concat(S.fresh.slice(0, Math.max(0, Math.min(nNew, maxCards-dues.length))));
   const total=queue.length; let i=0, again=[], known=0; const AGAIN=new Set();
   if (!total){ host.append(el('div',{class:'note ok'}, '오늘 볼 카드 없음. 복습 큐 비어 있음.')); onDone({c:0,t:0}); return; }
   const mode=settings.cardMode||'type';
@@ -928,7 +981,7 @@ function runVocab(host, nNew, maxCards, onDone){
     const x=queue[i]; prog.firstChild.style.width=Math.round(i/queue.length*100)+'%'; const inf=V.get()[x.w];
     const meta=el('div',{class:'pos'}, `${x.lvl||''} · ${x.deck==='adv'? '고급' : 'AWL '+x.sub} · ${x.fam} · ${inf? '복습 '+inf.seen+'회':'새 단어'}`);
     const back=el('div',{class:'hidden'}, entryNode(x));
-    const knownB=el('button',{class:'btn ghost',type:'button',onclick:()=>{ V.known(x.w); if (!AGAIN.has(x.w)) known++; next(); }}, '이미 앎');
+    const knownB=el('button',{class:'btn ghost sm',type:'button',onclick:()=>{ VK(x.w); if (!AGAIN.has(x.w)) known++; next(); }}, '이미 앎');
     const card=el('div',{class:'flash',style:'text-align:left;justify-content:flex-start'}, meta);
     const cue = mode==='type'? cueSentence(x) : null;
     if (cue){
@@ -939,20 +992,20 @@ function runVocab(host, nNew, maxCards, onDone){
       const check=el('button',{class:'btn',type:'button'}, '확인'), pass=el('button',{class:'btn sec',type:'button'}, '모름');
       const reveal=(ok,typed)=>{ inp.disabled=true; inp.classList.add(ok?'ok':'ng'); check.classList.add('hidden'); pass.classList.add('hidden'); knownB.classList.add('hidden');
         card.querySelector('.ex').replaceWith(el('div',{class:'ex'}, cue.before, el('b',{}, cue.form), cue.after));
-        if (ok){ V.grade(x.w,true); if (!AGAIN.has(x.w)) known++; } else { V.grade(x.w,false); AGAIN.add(x.w); again.push(x); }
+        if (ok){ VG(x.w,true); if (!AGAIN.has(x.w)) known++; } else { VG(x.w,false); AGAIN.add(x.w); again.push(x); }
         res.innerHTML=''; res.append(el('span',{class:'badge '+(ok?'ok':'ng')}, ok? '정답' : `정답 ${cue.form}${typed? ' · 입력 '+typed:''}`), el('span',{class:'spacer'}), el('button',{class:'btn',type:'button',onclick:next}, '다음'));
         res.classList.remove('hidden'); back.classList.remove('hidden'); res.querySelector('.btn').focus(); };
       check.onclick=()=>{ const v=norm(inp.value); if (!v) return inp.focus(); const ok = v===norm(cue.form) || v===norm(x.w) || v===norm(cue.hidden) ; reveal(ok, inp.value.trim()); };
       pass.onclick=()=>reveal(false,'');
       inp.addEventListener('keydown',e=>{ if (e.key==='Enter'){ e.preventDefault(); check.click(); } });
-      card.append(el('div',{class:'row',style:'margin-top:8px'}, el('button',{class:'btn ghost',type:'button','aria-label':'발음 듣기',onclick:()=>TTS.speak(x.w,'W',{rate:.9})}, '발음'), el('span',{class:'spacer'}), knownB, pass, check), res, back);
+      card.append(el('div',{class:'row',style:'margin-top:8px'}, el('button',{class:'btn ghost sm',type:'button','aria-label':'발음 듣기',onclick:()=>TTS.speak(x.w,'W',{rate:.9})}, '발음 듣기'), knownB, el('span',{class:'spacer'}), pass, check), res, back);
       document.onkeydown=null; setTimeout(()=>inp.focus(), 50);
     } else {
       card.append(el('div',{class:'word',style:'text-align:center'}, x.w));
       const flip=el('button',{class:'btn sec',type:'button'}, '뜻 보기'), yes=el('button',{class:'btn hidden',type:'button'}, '알았음'), no=el('button',{class:'btn sec hidden',type:'button'}, '몰랐음');
       flip.onclick=()=>{ back.classList.remove('hidden'); flip.classList.add('hidden'); yes.classList.remove('hidden'); no.classList.remove('hidden'); yes.focus(); };
-      yes.onclick=()=>{ V.grade(x.w,true); if (!AGAIN.has(x.w)) known++; next(); };
-      no.onclick=()=>{ V.grade(x.w,false); AGAIN.add(x.w); again.push(x); next(); };
+      yes.onclick=()=>{ VG(x.w,true); if (!AGAIN.has(x.w)) known++; next(); };
+      no.onclick=()=>{ VG(x.w,false); AGAIN.add(x.w); again.push(x); next(); };
       card.append(el('div',{class:'row',style:'justify-content:center;margin-top:8px'}, el('button',{class:'btn ghost',type:'button','aria-label':'발음 듣기',onclick:()=>TTS.speak(x.w,'W',{rate:.9})}, '발음'), knownB, flip, no, yes), back);
       document.onkeydown=e=>{ if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return; if (e.key===' '&&!flip.classList.contains('hidden')){ e.preventDefault(); flip.click(); } else if (e.key==='1'&&!no.classList.contains('hidden')) no.click(); else if (e.key==='2'&&!yes.classList.contains('hidden')) yes.click(); };
     }
@@ -1282,7 +1335,7 @@ VIEWS.today = ()=>{
   root.append(el('section',{class:'sec hello'},
     el('div',{class:'phase'}, ph? `${ph.name} · ${ph.start.slice(5).replace('-','/')}~${ph.end.slice(5).replace('-','/')}` : '시나리오 기간 종료'),
     el('h1',{}, `${greeting()}, 로빈`),
-    el('div',{class:'sub2'}, ne? `${ne.date===settings.test1?'1차':ne.date===settings.test2?'2차':'다음'} 시험까지 ${ne.days}일. ${ph? ph.goal : ''}` : (ph? ph.goal:''))));
+    el('div',{class:'sub2'}, ne? `${ne.date===settings.test1?'1차':ne.date===settings.test2?'2차':'다음'} 시험까지 ${ne.days}일 · 오늘 ${totalMin}분 계획` : '')));
   // registration gate
   if (locked) root.append(el('section',{class:'sec'}, el('div',{class:'note warn'},
     el('div',{}, el('b',{}, '시작 전에 하나만. '), `시험 접수부터 확인. 1차 ${settings.test1.slice(5).replace('-','/')}, 2차 ${settings.test2.slice(5).replace('-','/')}. 미접수면 일요일 회차나 Home Edition까지 포함해 바로 접수.`),
@@ -1302,7 +1355,7 @@ VIEWS.today = ()=>{
   const mon=addDays(d, -((k.w+6)%7)); const wk=el('div',{class:'week','aria-label':'이번 주 학습'});
   ['월','화','수','목','금','토','일'].forEach((n,i)=>{ const x=addDays(mon,i); const v=DAYS.all()[x]; const bl=v? Object.keys(v.blocks||{}).length:0; const plan=x===d? blocks.length : 0;
     const cls = DAYS.frozen(x)? 'frz' : (x===settings.test1||x===settings.test2)? 'exam' : (v && (x<d? bl>0 : plan && bl>=plan))? 'full' : (v && (bl||v.minutes))? 'part' : '';
-    wk.append(el('div',{class:'wd '+cls+(x===d?' today':'')}, el('i',{}, x===settings.test1||x===settings.test2? '시험' : cls==='frz'? '쉼' : (cls==='full'? '✓' : x.slice(8).replace(/^0/,''))), n)); });
+    wk.append(el('div',{class:'wd '+cls+(x===d?' today':'')+(x>d && !cls?' future':'')}, el('i',{}, x===settings.test1||x===settings.test2? '시험' : cls==='frz'? '쉼' : (cls==='full'? '✓' : x.slice(8).replace(/^0/,''))), n)); });
   root.append(el('section',{class:'sec'}, el('div',{class:'row'}, el('div',{class:'h5',style:'flex:1'}, '이번 주'), el('span',{class:'small'}, `연속 ${DAYS.streak()}일 · 주 2일 쉼 허용 · 오늘 ${dd.minutes||0}/${totalMin}분`)), wk));
   if (examNote) root.append(el('section',{class:'sec'}, sectionHead(`${examNote.label} 루틴`), el('div',{class:'list'}, ...examNote.tasks.map(t=>el('div',{class:'item'}, el('div',{class:'body'}, el('div',{class:'d',style:'color:var(--fg-base);font-size:14px;line-height:22px'}, t)))))));
   // blocks grouped by time of day
@@ -1317,7 +1370,7 @@ VIEWS.today = ()=>{
       const label = groups.length>1? b.block.replace(new RegExp('^'+G.g+'\\s*'),'') || b.block : b.block;
       list.append(el('button',{class:'item blk'+(isDone?' done':'')+(b===nb?' is-next':''),type:'button',disabled:locked,style:locked?'opacity:.5':'',onclick:()=>startBlock(b)},
         el('span',{class:'check'+(isDone?' on':''),role:'img','aria-label':isDone?'완료':'미완료'}),
-        el('div',{class:'body'}, el('div',{class:'t'}, label), el('div',{class:'d'}, el('span',{class:'sdot s-'+secOf(b.activity)}), `${a.name}${b.count? ' · '+b.count+(a.unit||''):''}${b.note? ' · '+b.note:''}`)),
+        el('div',{class:'body'}, el('div',{class:'t'}, label), el('div',{class:'d'}, el('span',{class:'sdot s-'+secOf(b.activity)}), `${a.name}${b.count? ' · '+b.count+(a.unit||''):''}`)),
         el('div',{class:'r'}, `${b.minutes}분`), svg(ICON.chev,'chev'))); });
     ses.append(list); });
   if (!blocks.length) ses.append(el('div',{class:'note'}, '오늘 계획된 블록 없음. 연습 탭에서 자유 연습.'));
@@ -1344,7 +1397,7 @@ VIEWS.drill = (o)=>{
   const a=ACT[o.act]; if (!a){ root.append(el('div',{class:'note ng'}, `알 수 없는 활동: ${o.act}`)); return; }
   const timerNode=el('span',{class:'timer'}, '00:00');
   const head=el('div',{class:'drill-head'}, el('button',{class:'btn ghost sm',type:'button',onclick:()=>go(o.blockKey?'today':'practice')}, '나가기'), el('div',{style:'font-weight:600'}, o.title||a.name), el('span',{class:'spacer'}), timerNode);
-  root.append(head); const body=el('div'); root.append(body);
+  root.append(head); if (o.note) root.append(el('div',{class:'note',style:'margin-bottom:8px'}, o.note)); const body=el('div'); root.append(body);
   const t0=Date.now(); let tmr=null; let finished=false;
   const finishBlock=(summary)=>{ if (finished) return; finished=true; if (tmr) tmr.stop(); body.querySelectorAll('button.fin').forEach(b=>b.disabled=true); const mins=Math.max(1, Math.round((Date.now()-t0)/60000));
     if (o.reviewRest && o.reviewRest.length){ DAYS.addMinutes(mins); const [nx,...rest]=o.reviewRest; body.append(el('div',{class:'result'}, el('div',{class:'small'}, summary.text||''), el('div',{class:'row',style:'margin-top:12px'}, el('button',{class:'btn',type:'button',onclick:()=>go('drill',{...o, act:'review', reviewNext:nx, reviewRest:rest})}, `다음 오답: ${ACT[nx.type].name}`)))); return; }
@@ -1358,7 +1411,8 @@ VIEWS.drill = (o)=>{
         el('button',{class:'btn sec',type:'button',onclick:()=>go('drill', o)}, '한 번 더'))));
     body.lastChild.scrollIntoView({behavior:'smooth', block:'center'});
   };
-  if (o.act==='vocab_srs'){ timerNode.classList.add('hidden'); const diag=/진단/.test(o.note||''); const nNew = o.noNew? 0 : diag? (o.count||100) : (o.blockKey? Math.min(newWordsToday(), o.count||25) : Math.min(settings.newWords, (nextExam()&&nextExam().days<=3)? 0 : settings.newWords)); runVocab(body, nNew, o.blockKey&&!diag? (o.count||40) : 999, r=>finishBlock({c:r.c, t:r.t, text:r.t? `${r.t}장 중 첫 시도 ${r.c}장 정답. 틀린 카드는 오늘 다시 나옴.` : ''})); return; }
+  if (o.act==='vocab_review'){ timerNode.classList.add('hidden'); const st=V.get(); const ws=VOCAB.filter(x=>((st[x.w]||{}).days||[]).includes(o.date) && (!o.missOnly || ((st[x.w].res||{})[o.date]==='miss'))); runVocab(body, 0, 999, r=>finishBlock({c:r.c, t:r.t, text:`다시 퀴즈 ${r.t}장 중 첫 시도 ${r.c}장 정답. 연습 모드라 복습 일정은 그대로.`}), {queue:ws, practice:true}); return; }
+  if (o.act==='vocab_srs'){ timerNode.classList.add('hidden'); const diag=/진단/.test(o.note||''); const nNew = o.noNew? 0 : diag? (o.count||100) : (o.blockKey? Math.min(newWordsToday(), o.count||25) : Math.min(settings.newWords, (nextExam()&&nextExam().days<=3)? 0 : settings.newWords)); runVocab(body, nNew, o.blockKey&&!diag? (o.count||40) : 999, r=>{ finishBlock({c:r.c, t:r.t, text:r.t? `${r.t}장 중 첫 시도 ${r.c}장 정답. 틀린 카드는 오늘 다시 나옴.` : ''}); if (r.t) body.append(el('div',{class:'row task'}, el('button',{class:'btn sec',type:'button',onclick:()=>go('vocab',{review:today()})}, '오늘 본 단어 다시 보기'))); }); return; }
   if (o.act==='template'){ timerNode.classList.add('hidden'); runTemplates(body, o.count||8, r=>finishBlock({c:r.c, t:r.t, text:r.t? `고정 표현 ${r.t}개 중 첫 시도 정답 ${r.c}개.${r.prod? ` 산출 ${r.prod.words}단어 ${r.prod.secs}초, 고정 표현 ${r.prod.used}/${r.prod.total} 사용.` : ''} 틀린 표현은 내일 다시, 맞힌 표현은 간격 반복.` : ''}), o.tpl); return; }
   if (o.act==='mock'){ body.append(el('div',{class:'panel'}, el('div',{class:'h5'}, '풀 모의고사'), el('p',{class:'small'}, '타이머를 켜고 중단 없이 4영역 연속. 끝나면 결과가 기록 탭에 자동 반영. 오답은 바로 이 앱의 오답 복습으로.'),
     el('div',{class:'row'}, el('a',{class:'btn',href:'mock.html#full'}, '모의고사 열기'), el('button',{type:'button',class:'btn sec fin',onclick:()=>{ if (finished) return; LOG.add({type:'mock', id:'mock-'+today(), c:0, t:0}); finishBlock({c:0,t:0,text:'모의고사 블록 완료 처리'}); }}, '완료 처리')))); return; }
@@ -1412,7 +1466,7 @@ VIEWS.practice = ()=>{
       const def = ['choose_response','build_sentence'].includes(k)? 10 : k==='interview'? 4 : k==='listen_repeat'? 7 : 1;
       list.append(el('button',{class:'item',type:'button',onclick:()=>go('drill',{act:k,count:def})},
         el('div',{class:'body'}, el('div',{class:'t'}, A.name), el('div',{class:'d'}, `문항 ${bank.length}개 · 푼 것 ${seen.size}개${A.target? ' · 목표 '+A.target+'초/'+(A.unit||'개'):''}`)),
-        el('span',{class:'badge '+(acc==null?'':acc>=.85?'ok':acc<.7?'ng':'warn')}, acc==null? '기록 없음' : `7일 ${pct(acc)}`), svg(ICON.chev,'chev'))); });
+        acc==null? null : el('span',{class:'badge '+(acc>=.85?'ok':acc<.7?'ng':'warn')}, `7일 ${pct(acc)}`), svg(ICON.chev,'chev'))); });
     root.append(el('section',{class:'sec'}, sectionHead(SEC_NAME[s]), list));
   }
   root.append(el('section',{class:'sec'}, sectionHead('종합'), el('div',{class:'list'},
@@ -1422,7 +1476,7 @@ VIEWS.practice = ()=>{
 };
 
 /* ---------- views: vocab ---------- */
-VIEWS.vocab = ()=>{
+VIEWS.vocab = (arg)=>{
   topMeta(); const S=V.stats(); const nAdv=VOCAB.filter(x=>x.deck==='adv').length;
   root.append(el('section',{class:'sec'}, el('div',{class:'stats'},
     el('div',{class:'stat'}, el('div',{class:'v'}, S.due.length), el('div',{class:'l'}, '오늘 복습 대기')),
@@ -1434,6 +1488,22 @@ VIEWS.vocab = ()=>{
   const order=el('select',{'aria-label':'새 단어 순서'}); [['mix','난이도 섞기 B2 3 · C1 5 · C2 2'],['adv','고급 덱 먼저'],['awl','AWL 먼저']].forEach(([v,t])=>order.append(el('option',{value:v,selected:(settings.wordOrder||'mix')===v},t))); order.onchange=()=>{ settings.wordOrder=order.value; saveSettings(); go('vocab'); };
   root.append(el('section',{class:'sec'}, el('div',{class:'row'}, mode, order, sel), el('div',{class:'row',style:'margin-top:8px'}, el('button',{class:'btn',type:'button',onclick:()=>go('drill',{act:'vocab_srs',count:settings.newWords,title:'단어 간격 반복'})}, `시작 · 복습 ${S.due.length} + 새 단어 ${settings.newWords}`)),
     el('p',{class:'small'}, '아는 단어는 이미 앎으로 졸업. 90일 뒤에 한 번만 다시 나옴.')));
+  // review by day
+  const st0=V.get(); const dayCount={}; VOCAB.forEach(x=>((st0[x.w]||{}).days||[]).forEach(d=>dayCount[d]=(dayCount[d]||0)+1));
+  const dates=Object.keys(dayCount).sort().reverse().slice(0,7);
+  if (dates.length){
+    let curD=(arg&&arg.review&&dayCount[arg.review])? arg.review : dates[0];
+    const sec=el('section',{class:'sec',id:'vreview'}); const chips=el('div',{class:'chips'}); const listR=el('div',{class:'list task'}); const actions=el('div',{class:'row task'});
+    const lab=d=> d===today()? '오늘' : d===addDays(today(),-1)? '어제' : d.slice(5).replace('-','/');
+    const renderR=()=>{ chips.innerHTML=''; dates.forEach(d=>chips.append(el('button',{class:'chip',type:'button','aria-pressed':String(d===curD),onclick:()=>{ curD=d; renderR(); }}, `${lab(d)} ${dayCount[d]}`)));
+      const st=V.get(); const ws=VOCAB.filter(x=>((st[x.w]||{}).days||[]).includes(curD)); const miss=ws.filter(x=>((st[x.w].res||{})[curD])==='miss');
+      ws.sort((a,b)=>(((st[b.w].res||{})[curD]==='miss')-((st[a.w].res||{})[curD]==='miss')) || a.w.localeCompare(b.w));
+      listR.innerHTML=''; ws.forEach(x=>{ const r=(st[x.w].res||{})[curD]; const det=el('div',{class:'hidden',style:'padding:0 16px 16px'}, entryNode(x));
+        listR.append(el('div',{}, el('button',{class:'item',type:'button',onclick:()=>det.classList.toggle('hidden')}, el('div',{class:'body'}, el('div',{class:'t'}, x.w, el('span',{class:'muted',style:'font-weight:400'}, `  ${x.lvl||''}`)), el('div',{class:'d'}, senses(x).map(s=>s.ko).join(' / '))), r==='miss'? el('span',{class:'badge ng'}, '틀림') : r==='known'? el('span',{class:'badge hl'}, '이미 앎') : el('span',{class:'badge ok'}, '맞힘')), det)); });
+      actions.innerHTML=''; actions.append(el('button',{class:'btn',type:'button',onclick:()=>go('drill',{act:'vocab_review',date:curD,title:`${lab(curD)} 단어 다시 퀴즈`})}, `${ws.length}개 다시 퀴즈`), miss.length? el('button',{class:'btn sec',type:'button',onclick:()=>go('drill',{act:'vocab_review',date:curD,missOnly:true,title:`${lab(curD)} 틀린 단어 퀴즈`})}, `틀린 ${miss.length}개만`) : null, el('span',{class:'small'}, '연습 모드. 복습 일정은 그대로')); };
+    renderR(); sec.append(sectionHead('학습한 단어 다시 보기', el('span',{class:'small'}, '누르면 뜻 전체')), chips, actions, listR); root.append(sec);
+    if (arg&&arg.review) setTimeout(()=>sec.scrollIntoView({block:'start'}), 50);
+  }
   // browser
   let deck=store.get('vdeck','adv'); const fams=[...new Set(VOCAB.map(x=>x.fam))]; let cur=store.get('fam','all'); let q='';
   const deckChips=el('div',{class:'chips'}), famChips=el('div',{class:'chips',style:'margin-top:8px'}); const listW=el('div',{class:'list task'});
