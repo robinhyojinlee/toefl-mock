@@ -404,9 +404,9 @@ body.drilling{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
 .qcard .stem{font-size:17px;line-height:26px;font-weight:600;margin-bottom:12px}
 .qcard .q{border-top:0;padding-top:0;margin-top:0}
 .ctx{background:var(--bg-raised);border-radius:16px;padding:16px;margin-bottom:12px}
-.ctx .passage{margin-top:8px;background:transparent;padding:0;max-height:38vh;overflow:auto;border-radius:0}
+.ctx .passage{margin-top:8px;background:transparent;padding:0;border-radius:0}
 .ctx .ptoggle{margin-top:6px}
-.ctx.collapsed .passage{max-height:96px;-webkit-mask-image:linear-gradient(#000 60%,transparent)}
+.ctx.collapsed .passage{max-height:84px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 50%,transparent);mask-image:linear-gradient(#000 50%,transparent)}
 .audio.big{flex-direction:column;align-items:stretch;padding:20px;gap:12px;background:var(--bg-raised);border-radius:16px}
 .audio.big .btn{min-height:52px;font-size:16px}
 .audio.big .st{text-align:left}
@@ -647,7 +647,7 @@ const TPL = JSON.parse(document.getElementById('tpl').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-03 23:38';
+const BUILD = '2026-10-04 01:27';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1566,9 +1566,9 @@ VIEWS.drill = (o)=>{
     const steps=buildSteps(act, items); let i=0; const res={}; const rev=[]; let stepT0=Date.now(); let lastHeader=null;
     const stage=el('div'); body.append(stage);
     const show=()=>{ if (finished) return; setProg(i, steps.length); const st=steps[i]; labelNode.textContent=`${o.title||A.name} · ${i+1}/${steps.length}`;
-      stage.innerHTML=''; if (st.header){ stage.append(st.header); const pass_=st.header.querySelector('.passage'); if (pass_ && !st.header.querySelector('.ptoggle')){ st.header.append(el('button',{class:'btn ghost sm ptoggle',type:'button',onclick:e=>{ const c=st.header.classList.toggle('collapsed'); e.currentTarget.textContent= c? '지문 펼치기' : '지문 접기'; }}, '지문 접기')); } if (lastHeader===st.header){ st.header.classList.add('collapsed'); const t_=st.header.querySelector('.ptoggle'); if (t_) t_.textContent='지문 펼치기'; } else st.header.classList.remove('collapsed'); lastHeader=st.header; } stage.append(st.node);
+      stage.innerHTML=''; if (st.header){ stage.append(st.header); const pass_=st.header.querySelector('.passage'); if (pass_ && !st.header.querySelector('.ptoggle')){ st.header.append(el('button',{class:'btn ghost sm ptoggle',type:'button',onclick:e=>{ const c=st.header.classList.toggle('collapsed'); e.currentTarget.textContent= c? '지문 펼치기' : '지문 접기'; }}, '지문 접기')); } if (lastHeader!==st.header){ st.header.classList.remove('collapsed'); const t_=st.header.querySelector('.ptoggle'); if (t_) t_.textContent='지문 접기'; } lastHeader=st.header; } stage.append(st.node);
       const refresh=()=>{ if (!st.ready || st.ready()) AB.set({primary:{label:'확인', onClick:check}}); else AB.set({primary:{label:st.notReady||'준비 중', disabled:true}}); };
-      st.refresh=refresh; if (st.header) st.header.refresh=refresh; steps.forEach(x=>{ if (x.header===st.header) x.refresh=refresh; }); refresh(); window.scrollTo(0,0); stepT0=Date.now(); };
+      st.refresh=refresh; if (st.header) st.header.refresh=refresh; steps.forEach(x=>{ if (x.header===st.header) x.refresh=refresh; }); refresh(); if (st.header && i>0 && steps[i-1].header===st.header) setTimeout(()=>st.node.scrollIntoView({block:'start'}),30); else window.scrollTo(0,0); stepT0=Date.now(); };
     const record=(st,r)=>{ const x=res[st.id]||(res[st.id]={c:0,t:0,sec:0}); x.c+=r.c; x.t+=r.t; x.sec+=Math.round((Date.now()-stepT0)/1000); };
     const check=()=>{ const st=steps[i]; if (!st || finished) return; if (!st.answered()){ toast('답을 먼저 골라줘'); return; } const r=st.check(); record(st,r); const ok=r.c===r.t;
       rev.push({ok, label:st.label, answer:r.answer}); setTimeout(()=>st.node.scrollIntoView({behavior:'smooth', block:'center'}), 30);
