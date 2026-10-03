@@ -661,10 +661,10 @@ function taskListenRepeat(set, opts){
   const results=[]; let done=false;
   start.addEventListener('click', async ()=>{
     if (!(await REC.ensure())) return; start.disabled=true;
-    for (let i=0;i<set.sentences.length;i++){
+    const my=VSEQ; for (let i=0;i<set.sentences.length;i++){ if (my!==VSEQ) return;
       const s = set.sentences[i];
       status.innerHTML=''; status.append(el('div',{class:'big'}, `문장 ${i+1} / 7`), el('div',{class:'lab'}, '듣는 중'));
-      await TTS.speak(s, i%2? 'M':'W'); await wait(250); beep();
+      await TTS.speak(s, i%2? 'M':'W'); if (my!==VSEQ) return; await wait(250); if (my!==VSEQ) return; beep();
       const ctrl={};
       stopBtn.disabled=false; stopBtn.onclick=()=>ctrl.stop&&ctrl.stop();
       const r = await REC.record(10, left=>{ status.innerHTML=''; status.append(el('div',{class:'big rec'}, el('i',{class:'dot'}), ` ${left}s`), el('div',{class:'lab'}, `문장 ${i+1} 따라 말하기`)); }, ctrl);
@@ -705,11 +705,11 @@ function taskInterview(set, opts){
     if (!(await REC.ensure())) return; start.disabled=true;
     status.innerHTML=''; status.append(el('div',{class:'big'}, '면접 시작'), el('div',{class:'lab'}, '소개를 듣는 중'));
     await TTS.speak(set.intro, 'W'); await wait(300);
-    for (let i=0;i<set.questions.length;i++){
+    const my=VSEQ; for (let i=0;i<set.questions.length;i++){ if (my!==VSEQ) return;
       const q=set.questions[i];
       status.innerHTML=''; status.append(el('div',{class:'big'}, `질문 ${i+1} / 4`), el('div',{class:'lab'}, '질문을 듣는 중'));
       qshow.classList.remove('hidden'); qshow.textContent = q;
-      await TTS.speak(q, 'W'); await wait(200); beep();
+      await TTS.speak(q, 'W'); if (my!==VSEQ) return; await wait(200); if (my!==VSEQ) return; beep();
       const ctrl={}; stopBtn.disabled=false; stopBtn.onclick=()=>ctrl.stop&&ctrl.stop();
       const r = await REC.record(45, left=>{ status.innerHTML=''; status.append(el('div',{class:'big rec'}, el('i',{class:'dot'}), ` ${left}s`), el('div',{class:'lab'}, `질문 ${i+1} 답변 중 (목표 약 100단어)`)); }, ctrl);
       stopBtn.disabled=true;

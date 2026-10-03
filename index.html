@@ -509,7 +509,7 @@ const TPL = JSON.parse(document.getElementById('tpl').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-03 16:47';
+const BUILD = '2026-10-03 16:52';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -621,8 +621,8 @@ const TTS = {
   },
   cur:null,
   el:null, unlocked:false,
-  unlock(){ if (this.unlocked) return; this.unlocked=true; try{ const a=this.el||(this.el=new Audio()); const first=AUDIO.values().next().value; if (first){ a.muted=true; a.src='audio/'+first+'.mp3'; const p=a.play(); if (p) p.then(()=>{ a.pause(); a.muted=false; }).catch(()=>{ a.muted=false; this.unlocked=false; }); } }catch(e){ this.unlocked=false; } try{ const c=beep.ctx||(beep.ctx=new (window.AudioContext||window.webkitAudioContext)()); c.resume&&c.resume(); }catch(e){} },
-  playFile(url, rate){ const g0=this.gen; return new Promise(res=>{ if (this.gen!==g0) return res(true); const a=this.el||(this.el=new Audio()); this.cur=a; a.muted=false; a.src=url; a.playbackRate=rate||1; let done=false; const fin=(ok)=>{ if(!done){ done=true; a.onended=null; a.onerror=null; res(ok); } }; a.onended=()=>fin(true); a.onerror=()=>fin(false); const p=a.play(); if (p) p.catch(()=>fin(false)); }); },
+  unlock(){ if (this.unlocked || (this.cur && !this.cur.paused)) return; this.unlocked=true; try{ const a=this.el||(this.el=new Audio()); const first=AUDIO.values().next().value; if (first){ a.muted=true; a.src='audio/'+first+'.mp3'; const p=a.play(); if (p) p.then(()=>{ if (!this.cur){ a.pause(); } a.muted=false; }).catch(e=>{ a.muted=false; if (!e || e.name!=='AbortError') this.unlocked=false; }); } }catch(e){ this.unlocked=false; } try{ const c=beep.ctx||(beep.ctx=new (window.AudioContext||window.webkitAudioContext)()); c.resume&&c.resume(); }catch(e){} },
+  playFile(url, rate){ const g0=this.gen; return new Promise(res=>{ if (this.gen!==g0) return res(true); const a=this.el||(this.el=new Audio()); this.cur=a; a.muted=false; a.src=url; a.playbackRate=rate||1; let done=false; const fin=(ok)=>{ if(!done){ done=true; a.onended=null; a.onerror=null; res(ok); } }; a.onended=()=>fin(true); a.onerror=()=>fin(false); const p=a.play(); if (p) p.then(()=>{ this.unlocked=true; }).catch(()=>fin(false)); }); },
   async speak(text, g='W', opts={}){
     const g0=this.gen; const k=audioKey(g,text);
     if (AUDIO.has(k)){ const ok=await this.playFile('audio/'+k+'.mp3', opts.rate ?? settings.rate); if (ok) return; }
