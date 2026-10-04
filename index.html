@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#FAFAF9" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#191614" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F3F6FB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A1222" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="TOEFL 110">
 <title>TOEFL 110 Coach</title>
@@ -253,7 +253,7 @@ details summary{cursor:pointer;color:var(--fg-subtle);font-size:13px;padding:6px
 .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .heat{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:360px}
 .heat i{aspect-ratio:1;border-radius:4px;background:var(--bg-muted);position:relative}
-.heat i.l1{background:rgba(179,167,155,.45)} .heat i.l2{background:#9B8C7E} .heat i.l3{background:var(--bg-primary)}
+.heat i.l1{background:rgba(0,71,171,.25)} .heat i.l2{background:rgba(0,71,171,.55)} .heat i.l3{background:var(--bg-primary)}
 .heat i.today{outline:2px solid var(--fg-highlight);outline-offset:1px}
 .heat i.future{background:transparent;border:1px dashed var(--bd-base)}
 .heat i.exam{background:var(--bg-highlight-subtle);border:1.5px solid var(--fg-highlight)}
@@ -401,8 +401,8 @@ body.drilling{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
 .qcard .opt input{position:absolute;opacity:0;pointer-events:none}
 .qcard .opt span{display:block}
 .qcard .opt:has(input:checked){border-color:var(--bd-focus);background:var(--bg-selected)}
-.qcard .opt.correct{border-color:var(--bd-success);background:var(--bg-success-subtle)}
-.qcard .opt.wrong{border-color:var(--bd-error);background:var(--bg-error-subtle)}
+.qcard .opt.correct{border-color:var(--bd-success)!important;background:var(--bg-success-subtle)!important}
+.qcard .opt.wrong{border-color:var(--bd-error)!important;background:var(--bg-error-subtle)!important}
 .qcard .stem{font-size:17px;line-height:26px;font-weight:600;margin-bottom:12px}
 .qcard .q{border-top:0;padding-top:0;margin-top:0}
 .ctx{background:var(--bg-raised);border-radius:16px;padding:16px;margin-bottom:12px}
@@ -447,18 +447,41 @@ body.drilling{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
 .gcard .mini-check.on{background:var(--bg-primary);border-color:var(--bg-primary)}
 .gcard .mini-check.on::after{content:'';width:9px;height:5px;border-left:2px solid var(--fg-on-primary);border-bottom:2px solid var(--fg-on-primary);transform:translateY(-1px) rotate(-45deg)}
 .home-cta{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:20;padding:0 16px 12px;pointer-events:none}
-.home-cta .btn{pointer-events:auto;max-width:688px;margin:0 auto;display:flex;width:100%;min-height:56px;border-radius:16px;font-size:16px;justify-content:space-between;padding:0 20px;box-shadow:0 8px 24px rgba(28,25,23,.18)}
+.home-cta .btn{pointer-events:auto;max-width:688px;margin:0 auto;display:flex;width:100%;min-height:56px;border-radius:16px;font-size:16px;justify-content:space-between;padding:0 20px;box-shadow:0 8px 24px rgba(10,30,90,.22)}
 @media (min-width:640px){ .home-cta{bottom:16px} }
 body.has-cta{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 
 /* long-press lookup sheet */
-.lk{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--bg-raised);border-radius:20px 20px 0 0;box-shadow:0 -8px 32px rgba(28,25,23,.18);padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:62vh;overflow:auto}
+.lk{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--bg-raised);border-radius:20px 20px 0 0;box-shadow:0 -8px 32px rgba(10,30,90,.22);padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:62vh;overflow:auto}
 .lk .in{max-width:720px;margin:0 auto}
 .lk .w{font-size:24px;line-height:32px;font-weight:800;letter-spacing:-0.4px}
 .lk .ko{font-size:17px;line-height:26px;font-weight:600;margin-top:2px}
 .lk .ctxs{font-size:14px;line-height:22px;color:var(--fg-subtle);margin-top:8px;background:var(--bg-subtle);border-radius:10px;padding:10px 12px}
 .lk .grab{width:36px;height:4px;border-radius:9999px;background:var(--bd-strong);margin:0 auto 10px}
 .passage,.transcript,.qcard .stem,.qcard .opt span{-webkit-touch-callout:default}
+
+/* ---- cobalt theme (Robin: deep blue cobalt, no brown/cream) ---- */
+:root{
+  --bg-page:#F3F6FB; --bg-base:#F7F9FC; --bg-subtle:#EEF2F8; --bg-raised:#FFFFFF; --bg-muted:#E3E8F0;
+  --bg-primary:#0047AB; --bg-primary-hover:#003A8F; --bg-primary-muted:rgba(0,71,171,.08); --bg-selected:rgba(0,71,171,.10);
+  --bg-hover:rgba(15,23,42,.04); --bg-pressed:rgba(15,23,42,.08);
+  --fg-base:#0F172A; --fg-subtle:#475569; --fg-muted:#64748B; --fg-disabled:#A0AEC0;
+  --fg-primary:#0047AB; --fg-on-primary:#FFFFFF; --fg-highlight:#1E63D6;
+  --bd-base:#E2E8F0; --bd-subtle:#CBD5E1; --bd-strong:#94A3B8; --bd-focus:#0047AB; --bd-focus-ring:rgba(0,71,171,.28); --bd-primary:rgba(0,71,171,.35);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg-page:#0A1222; --bg-base:#0A1222; --bg-subtle:rgba(255,255,255,.04); --bg-raised:#111C33; --bg-muted:#1C2944;
+  --bg-primary:#2F6BEA; --bg-primary-hover:#4A7FF0; --bg-primary-muted:rgba(79,139,255,.10); --bg-selected:rgba(79,139,255,.18);
+  --bg-hover:rgba(255,255,255,.05); --bg-pressed:rgba(255,255,255,.09);
+  --fg-base:#E8EEF8; --fg-subtle:rgba(232,238,248,.74); --fg-muted:rgba(232,238,248,.56); --fg-disabled:#3D4B66;
+  --fg-primary:#8FB3FF; --fg-on-primary:#FFFFFF; --fg-highlight:#8FB3FF;
+  --bd-base:rgba(255,255,255,.08); --bd-subtle:rgba(255,255,255,.12); --bd-strong:rgba(255,255,255,.24); --bd-focus:#8FB3FF; --bd-focus-ring:rgba(143,179,255,.35); --bd-primary:rgba(143,179,255,.40);
+}}
+:root[data-theme="dark"]{
+  --bg-page:#0A1222; --bg-base:#0A1222; --bg-raised:#111C33; --bg-muted:#1C2944; --bg-primary:#2F6BEA; --bg-primary-hover:#4A7FF0;
+  --bg-selected:rgba(79,139,255,.18); --fg-base:#E8EEF8; --fg-primary:#8FB3FF; --bd-focus:#8FB3FF;
+}
+.logo{border-radius:8px}
 </style>
 </head>
 <body>
@@ -660,7 +683,7 @@ const GLOSS = JSON.parse(document.getElementById('gloss').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-04 13:59';
+const BUILD = '2026-10-04 14:03';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
