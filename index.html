@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="TOEFL 110">
 <title>TOEFL 110 Coach</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
-<link rel="icon" type="image/png" href="icon-192.png?v=3">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=4">
+<link rel="icon" type="image/png" href="icon-192.png?v=4">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-jp-dynamic-subset.min.css">
 <style>
 /* Tiro Design System semantic tokens (plato-corp/design ed08363, tokens/colors.yaml). Light / Dark. */
@@ -486,7 +486,7 @@ body.has-cta{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 </head>
 <body>
 <header class="top"><div class="in">
-  <img class="logo" src="icon-192.png?v=3" alt="" aria-hidden="true">
+  <img class="logo" src="icon-192.png?v=4" alt="" aria-hidden="true">
   <div class="title">TOEFL 110 Coach</div>
   <nav class="tabs" id="deskTabs" aria-label="주 메뉴"></nav>
   <div class="meta" id="topMeta"></div>
@@ -683,7 +683,7 @@ const GLOSS = JSON.parse(document.getElementById('gloss').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-04 14:19';
+const BUILD = '2026-10-04 14:24';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
