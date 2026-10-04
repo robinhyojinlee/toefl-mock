@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="TOEFL 110">
 <title>TOEFL 110 Coach</title>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" href="icon-192.png?v=2">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-jp-dynamic-subset.min.css">
 <style>
 /* Tiro Design System semantic tokens (plato-corp/design ed08363, tokens/colors.yaml). Light / Dark. */
@@ -329,7 +331,7 @@ body{background:var(--bg-page)}
 :root[data-theme="dark"]{--bg-page:#191614}
 .top{background:color-mix(in srgb, var(--bg-page) 86%, transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:0}
 .top .in{padding:10px 16px}
-.logo{width:26px;height:26px;border-radius:8px;font-size:11px}
+.logo{width:28px;height:28px;border-radius:8px;object-fit:cover;background:transparent}
 .top .title{font-size:15px;line-height:22px}
 .top .meta{font-size:12px;font-weight:600;color:var(--fg-primary);background:var(--bg-raised);padding:4px 10px;border-radius:9999px}
 main{max-width:720px}
@@ -461,7 +463,7 @@ body.has-cta{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 </head>
 <body>
 <header class="top"><div class="in">
-  <div class="logo" aria-hidden="true">110</div>
+  <img class="logo" src="icon-192.png?v=2" alt="" aria-hidden="true">
   <div class="title">TOEFL 110 Coach</div>
   <nav class="tabs" id="deskTabs" aria-label="주 메뉴"></nav>
   <div class="meta" id="topMeta"></div>
@@ -658,7 +660,7 @@ const GLOSS = JSON.parse(document.getElementById('gloss').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-04 01:35';
+const BUILD = '2026-10-04 13:59';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1289,15 +1291,30 @@ function showLookup(raw, ctx, src){ const info=lookupWord(raw); if (!info) retur
     info.entry? entryNode(info.entry) : el('div',{}, el('div',{class:'ko'}, (info.pos? info.pos+'  ':'')+(info.ko||'사전에 없는 단어. 문맥으로 추측')), info.lemma && info.lemma!==info.w? el('div',{class:'small'}, '기본형 '+info.lemma) : null),
     ctx? el('div',{class:'ctxs'}, hlWord(ctx, info.w)) : null,
     el('div',{class:'small',style:'margin-top:8px'}, '단어 탭 찾아본 단어에 저장됨. 내일 단어 복습에 나옴')));
-  document.body.append(sh); LK_OPEN=sh; }
+  sh.dataset.w=raw.toLowerCase(); document.body.append(sh); LK_OPEN=sh; }
 (function(){ let tmo=null;
   const ZONES='.passage,.transcript,.qcard,.ctx,.flash .ex,.sense,.tsheet .transcript';
   document.addEventListener('selectionchange',()=>{ clearTimeout(tmo); tmo=setTimeout(()=>{ const sel=window.getSelection(); if (!sel || sel.isCollapsed) return; const t=sel.toString().trim(); if (!/^[A-Za-z][A-Za-z'’-]{1,30}$/.test(t)) return;
       const node=sel.anchorNode && (sel.anchorNode.nodeType===1? sel.anchorNode : sel.anchorNode.parentElement); if (!node || !node.closest(ZONES)) return; if (node.closest('input,textarea')) return;
       const host=node.closest('.passage,.transcript,.qcard,.ctx,.sense,.flash')||node; const ctx=sentenceAround(host.textContent, t);
       const src=(document.querySelector('.lesson-label')||{}).textContent||'';
-      showLookup(t, ctx, src); }, 450); });
+      if (LK_OPEN && LK_OPEN.dataset.w===t.toLowerCase()) return; showLookup(t, ctx, src); }, 450); });
   document.addEventListener('pointerdown',e=>{ if (LK_OPEN && !e.target.closest('.lk')) closeLookup(); }, true);
+  // mouse long-press (PC): hold ~0.45 s on a word
+  let hold=null, sx=0, sy=0;
+  const wordAt=(x,y)=>{ let node=null, off=0;
+    if (document.caretRangeFromPoint){ const r=document.caretRangeFromPoint(x,y); if (r){ node=r.startContainer; off=r.startOffset; } }
+    else if (document.caretPositionFromPoint){ const p=document.caretPositionFromPoint(x,y); if (p){ node=p.offsetNode; off=p.offset; } }
+    if (!node || node.nodeType!==3) return null; const t=node.textContent; let a=off, b=off;
+    while (a>0 && /[A-Za-z'’-]/.test(t[a-1])) a--; while (b<t.length && /[A-Za-z'’-]/.test(t[b])) b++;
+    const w=t.slice(a,b).replace(/^['’-]+|['’-]+$/g,''); return w.length>=2? {w, node, a, b} : null; };
+  document.addEventListener('pointerdown',e=>{ if (e.pointerType!=='mouse' || e.button!==0) return; const z=e.target.closest(ZONES); if (!z || e.target.closest('input,textarea,button,label.opt input')) return;
+    sx=e.clientX; sy=e.clientY; clearTimeout(hold);
+    hold=setTimeout(()=>{ const hit=wordAt(sx,sy); if (!hit) return; try{ const r=document.createRange(); r.setStart(hit.node,hit.a); r.setEnd(hit.node,hit.b); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }catch(_){}
+      const host=hit.node.parentElement.closest('.passage,.transcript,.qcard,.ctx,.sense,.flash')||hit.node.parentElement; clearTimeout(tmo);
+      showLookup(hit.w, sentenceAround(host.textContent, hit.w), (document.querySelector('.lesson-label')||{}).textContent||''); }, 450); });
+  document.addEventListener('pointermove',e=>{ if (hold && (Math.abs(e.clientX-sx)>6 || Math.abs(e.clientY-sy)>6)){ clearTimeout(hold); hold=null; } });
+  document.addEventListener('pointerup',()=>{ clearTimeout(hold); hold=null; });
 })();
 
 /* ---------- item picking ---------- */
