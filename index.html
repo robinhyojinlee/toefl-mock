@@ -683,7 +683,7 @@ const GLOSS = JSON.parse(document.getElementById('gloss').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-05 17:37';
+const BUILD = '2026-10-05 17:57';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -800,6 +800,7 @@ const TTS = {
   playFile(url, rate){ const g0=this.gen; return new Promise(res=>{ if (this.gen!==g0) return res(true); const a=this.el||(this.el=new Audio()); this.cur=a; a.muted=false; a.src=url; a.playbackRate=rate||1; let done=false; const fin=(ok)=>{ if(!done){ done=true; a.onended=null; a.onerror=null; res(ok); } }; a.onended=()=>fin(true); a.onerror=()=>fin(false); const p=a.play(); if (p) p.then(()=>{ this.unlocked=true; }).catch(()=>fin(false)); }); },
   async speak(text, g='W', opts={}){
     const g0=this.gen; const k=audioKey(g,text);
+    if (OFF_AKEYS.has(k)){ try{ const u=await officialAudioURL(k); if (this.gen===g0){ const ok=await this.playFile(u, opts.rate ?? settings.rate); if (ok) return; } else return; }catch(e){ toast('공식 음원 불러오기 실패: '+e.message); } }
     if (AUDIO.has(k)){ const ok=await this.playFile('audio/'+k+'.mp3', opts.rate ?? settings.rate); if (ok) return; }
     if (!('speechSynthesis' in window)){ toast('이 브라우저는 음성 합성 미지원. Chrome 또는 Safari 사용'); return; }
     const parts = text.match(/[^.!?]+[.!?]+["']?|[^.!?]+$/g) || [text];
@@ -1345,11 +1346,36 @@ function showLookup(raw, ctx, src){ const info=lookupWord(raw); if (!info) retur
   document.addEventListener('pointerup',()=>{ clearTimeout(hold); hold=null; });
 })();
 
+/* ---------- ETS official practice tests (private GitHub repo, loaded per device) ---------- */
+const OFF_MAP={complete_the_words:['reading','complete_the_words'],daily_life:['reading','daily_life'],academic:['reading','academic'],choose_response:['listening','choose_response'],conversations:['listening','conversations'],announcements:['listening','announcements'],talks:['listening','talks'],build_sentence:['sw','build_sentence'],emails:['sw','emails'],academic_discussion:['sw','academic_discussion'],listen_repeat:['sw','listen_repeat'],interviews:['sw','interviews']};
+let OFF_AKEYS=new Set(); const OFF_IDS=new Set();
+function mergeOfficial(d){ if (!d || !d.items) return 0; let n=0;
+  for (const [t,arr] of Object.entries(d.items)){ const m=OFF_MAP[t]; if (!m) continue; const dest=BANK[m[0]][m[1]]; const have=new Set(dest.map(x=>x.id)); arr.forEach(x=>{ OFF_IDS.add(x.id); if (!have.has(x.id)){ x.official=true; dest.push(x); n++; } }); }
+  OFF_AKEYS=new Set(d.audio||[]); return n; }
+try{ mergeOfficial(store.get('official',null)); }catch(e){}
+const b64u = s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)), c=>c.charCodeAt(0));
+async function unlockOfficial(keyStr){ // official.enc = 12-byte nonce + AES-256-GCM ciphertext
+  const buf=new Uint8Array(await (await fetch('official.enc',{cache:'no-store'})).arrayBuffer());
+  const key=await crypto.subtle.importKey('raw', b64u(keyStr), 'AES-GCM', false, ['decrypt']);
+  const plain=await crypto.subtle.decrypt({name:'AES-GCM', iv:buf.slice(0,12)}, key, buf.slice(12));
+  const d=JSON.parse(new TextDecoder().decode(plain));
+  try{ const c=await caches.open('official-audio'); for (const [k,b] of Object.entries(d.audio||{})){ await c.put('/off/'+k, new Response(new Blob([b64u(b)],{type:'audio/mpeg'}))); } }catch(e){}
+  const slim={items:d.items, audio:Object.keys(d.audio||{})}; store.set('official', slim); store.set('offkey', keyStr); mergeOfficial(slim); return OFF_IDS.size; }
+const OFF_URLS={};
+async function officialAudioURL(k){ if (OFF_URLS[k]) return OFF_URLS[k]; let blob=null;
+  try{ const c=await caches.open('official-audio'); const hit=await c.match('/off/'+k); if (hit) blob=await hit.blob(); }catch(e){}
+  if (!blob && store.get('offkey','')){ await unlockOfficial(store.get('offkey','')); const c=await caches.open('official-audio'); const hit=await c.match('/off/'+k); if (hit) blob=await hit.blob(); }
+  if (!blob) throw new Error('음원 없음'); return OFF_URLS[k]=URL.createObjectURL(blob); }
+// one-tap unlock link: #unlock=KEY (the key stays in this browser, the fragment never reaches a server)
+(async()=>{ const m=(location.hash||'').match(/unlock=([A-Za-z0-9_-]+)/); if (!m) return; try{ history.replaceState(null,'',location.pathname+'#practice'); }catch(e){}
+  try{ const n=await unlockOfficial(m[1]); toast(`ETS 공식 문제 ${n}개 열림`); setTimeout(()=>go('practice'),300); }catch(e){ toast('열쇠가 맞지 않음'); } })();
+
 /* ---------- item picking ---------- */
 const SHOWN={ get(){ return store.get('shown',{}); }, mark(act,id){ const S=this.get(); (S[act]=S[act]||{})[id]=Date.now(); store.set('shown',S); } };
 function pickItems(act, n, forceIds, reviewOnly){
-  const bank=ACT[act].bank(); if (forceIds) return bank.filter(x=>forceIds.includes(x.id));
+  let bank=ACT[act].bank(); if (forceIds) return bank.filter(x=>forceIds.includes(x.id));
   if (reviewOnly){ const last={}; LOG.all().filter(a=>a.type===act && a.t>0).forEach(a=>last[a.id]=a.c/a.t); const seenIt=bank.filter(x=>x.id in last).sort((a,b)=>last[a.id]-last[b.id]); if (seenIt.length) return seenIt.slice(0,n); }
+  const bankAll=bank; { const b2=bankAll.filter(x=>!x.official); if (b2.length) bank=b2; }
   const lastT={}; LOG.all().filter(a=>a.type===act).forEach(a=>lastT[a.id]=Math.max(lastT[a.id]||0, a.ts||1)); const sh=SHOWN.get()[act]||{}; Object.keys(sh).forEach(id=>lastT[id]=Math.max(lastT[id]||0, sh[id]));
   const day=today(); const fresh=bank.filter(x=>!lastT[x.id]).sort((a,b)=>hashStr(day+a.id)-hashStr(day+b.id));
   const old=bank.filter(x=>lastT[x.id]).sort((a,b)=>lastT[a.id]-lastT[b.id]);
@@ -1757,6 +1783,16 @@ VIEWS.practice = ()=>{
         acc==null? null : el('span',{class:'badge '+(acc>=.85?'ok':acc<.7?'ng':'warn')}, `7일 ${pct(acc)}`), svg(ICON.chev,'chev'))); });
     root.append(el('section',{class:'sec'}, sectionHead(SEC_NAME[s]), list));
   }
+  { const sec=el('section',{class:'sec'}); sec.append(sectionHead('ETS 공식 문제', el('span',{class:'small'}, '공식 모의고사 2회분 · 잠금')));
+    const offAct={complete_words:'complete_the_words',daily_life:'daily_life',academic_reading:'academic',choose_response:'choose_response',conversation:'conversations',announcement:'announcements',academic_talk:'talks',build_sentence:'build_sentence',email:'emails',discussion:'academic_discussion',listen_repeat:'listen_repeat',interview:'interviews'};
+    if (!OFF_IDS.size){ const inp=el('input',{type:'password',class:'in',placeholder:'열쇠 붙여넣기','aria-label':'열쇠',style:'width:100%'});
+      sec.append(el('div',{class:'gcard',style:'margin-top:0'}, el('div',{class:'small'}, '잠금 링크를 한 번 누르면 이 기기에서 열림. 링크 대신 열쇠를 붙여넣어도 됨.'), el('div',{style:'margin-top:8px'}, inp),
+        el('div',{class:'row',style:'margin-top:8px'}, el('button',{class:'btn sm',type:'button',onclick:async()=>{ const v=inp.value.trim().replace(/^.*unlock=/,''); if (!v) return; try{ const n=await unlockOfficial(v); toast(`ETS 공식 문제 ${n}개 열림`); go('practice'); }catch(e){ toast('열쇠가 맞지 않음'); } }}, '열기')))); }
+    else { const list=el('div',{class:'list'});
+      Object.entries(offAct).forEach(([act,key])=>{ const ids=[...OFF_IDS].filter(id=>ACT[act].bank().some(x=>x.id===id)); if (!ids.length) return; const seen=LOG.seen(act); const done=ids.filter(id=>seen.has(id)).length;
+        list.append(el('button',{class:'item',type:'button',onclick:()=>go('drill',{act, count:ids.length, forceIds:ids, title:'ETS 공식 · '+ACT[act].name})}, el('div',{class:'body'}, el('div',{class:'t'}, ACT[act].name), el('div',{class:'d'}, `공식 ${ids.length}개 · 푼 것 ${done}개`)), svg(ICON.chev,'chev'))); });
+      sec.append(list); }
+    root.append(sec); }
   root.append(el('section',{class:'sec'}, sectionHead('종합'), el('div',{class:'list'},
     el('button',{class:'item',type:'button',onclick:()=>go('drill',{act:'template',count:8,title:'템플릿 암기'})}, el('div',{class:'body'}, el('div',{class:'t'}, '템플릿 암기'), el('div',{class:'d'}, `Interview, Discussion, Email 고정 표현 ${TS.stats().total}개 · 복습 대기 ${TS.stats().due} · 학습 전 ${TS.stats().fresh}`)), svg(ICON.chev,'chev')),
     el('button',{class:'item',type:'button',onclick:()=>go('drill',{act:'review',count:8})}, el('div',{class:'body'}, el('div',{class:'t'}, '오답 복습'), el('div',{class:'d'}, `최근 14일 정답률 70% 미만 ${wrongItems(14).length}개`)), svg(ICON.chev,'chev')),
