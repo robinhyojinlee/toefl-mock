@@ -493,6 +493,11 @@ body.has-cta{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 .flash{position:relative}
 .abar .btns.even .btn{flex:1 1 0}
 .abar .btn.sec.neg{color:var(--fg-error);border-color:var(--bd-error);border-width:1.5px}
+.wd.heart i{background:var(--bg-error-subtle);box-shadow:inset 0 0 0 1.5px rgba(244,63,94,.35)}
+.wd.heart i svg{width:18px;height:18px;fill:#F43F5E;stroke:none}
+.wd.heart.today i{animation:stamp .5s ease-out}
+@keyframes stamp{0%{transform:scale(.4) rotate(-20deg);opacity:0}60%{transform:scale(1.2) rotate(6deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){.wd.heart.today i{animation:none}}
 </style>
 </head>
 <body>
@@ -694,7 +699,7 @@ const GLOSS = JSON.parse(document.getElementById('gloss').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-06 22:10';
+const BUILD = '2026-10-06 22:56';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1106,17 +1111,33 @@ function runVocab(host, nNew, maxCards, onDone, opts={}){
   const tabs=el('div',{class:'chips',style:'margin-bottom:4px'});
   const drawTabs=()=>{ tabs.innerHTML=''; [['flip','뜻 떠올리기 · 리딩용'],['type','철자 쓰기 · 빈칸용']].forEach(([k,t])=>tabs.append(el('button',{class:'chip',type:'button','aria-pressed':String(mode===k),onclick:()=>{ if (mode===k) return; mode=k; settings.cardMode=k; saveSettings(); drawTabs(); show(); }}, t))); };
   drawTabs(); if (window.CUR_PROG) host.append(tabs, hold); else host.append(tabs, prog, hold);
-  const next=()=>{ const cur=queue[i]; if (cur) HIST.push({x:cur, res:(V.get()[cur.w]||{}).res}); i++; show(); };
-  const showPrev=()=>{ const h=HIST[HIST.length-1]; if (!h) return; closeLookup(); const r=(h.res||{})[today()];
-    const sh=el('div',{class:'lk',role:'dialog','aria-label':'이전 단어'}, el('div',{class:'in'}, el('div',{class:'grab'}), el('div',{class:'row'}, el('div',{class:'w',style:'flex:1'}, h.x.w), r? el('span',{class:'badge '+(r==='ok'?'ok':r==='known'?'hl':'ng')}, r==='ok'?'알았음':r==='known'?'이미 앎':'몰랐음') : null, el('button',{class:'btn ghost sm',type:'button',onclick:()=>TTS.speak(h.x.w,'W',{rate:.9})}, '발음'), el('button',{class:'btn sec sm',type:'button',onclick:closeLookup}, '닫기')), entryNode(h.x)));
-    sh.dataset.w=h.x.w; document.body.append(sh); LK_OPEN=sh; };
+  let curSnap=null, curWasAgain=false;
+  const next=()=>{ const cur=queue[i]; if (cur){ const st=V.get()[cur.w]||{}; const res=opts.practice? (lastRes||'ok') : ((st.res||{})[today()]||lastRes||'ok'); HIST.push({x:cur, snap:curSnap, res, counted: res!=='miss' && !curWasAgain}); } lastRes=null; i++; show(); };
+  let lastRes=null;
+  const regrade=(h,newRes)=>{ if (h.res===newRes) return;
+    if (!opts.practice){ const st=V.get(); if (h.snap) st[h.x.w]=JSON.parse(JSON.stringify(h.snap)); else delete st[h.x.w]; V.set(st);
+      if (newRes==='ok') V.grade(h.x.w,true); else if (newRes==='miss') V.grade(h.x.w,false); else V.known(h.x.w); }
+    if (newRes==='miss'){ if (!AGAIN.has(h.x.w)){ AGAIN.add(h.x.w); again.push(h.x); } if (h.counted){ known--; h.counted=false; } }
+    else { const k=again.indexOf(h.x); if (k>=0){ again.splice(k,1); AGAIN.delete(h.x.w); } if (!h.counted){ known++; h.counted=true; } }
+    h.res=newRes; };
+  const showPrev=(start)=>{ if (!HIST.length) return; let idx= start==null? HIST.length-1 : start; closeLookup();
+    const sh=el('div',{class:'lk',role:'dialog','aria-label':'이전 단어'}); const draw=()=>{ const h=HIST[idx]; sh.innerHTML='';
+      const badge= h.res==='ok'? ['ok','알았음'] : h.res==='known'? ['hl','이미 앎'] : ['ng','몰랐음'];
+      sh.append(el('div',{class:'in'}, el('div',{class:'grab'}),
+        el('div',{class:'row'}, el('button',{class:'btn sec sm',type:'button',disabled:idx===0||null,onclick:()=>{ idx--; draw(); }}, '‹ 이전'), el('span',{class:'small',style:'flex:1;text-align:center'}, `이번 세션 ${idx+1} / ${HIST.length}`), el('button',{class:'btn sec sm',type:'button',disabled:idx===HIST.length-1||null,onclick:()=>{ idx++; draw(); }}, '다음 ›')),
+        el('div',{class:'row',style:'margin-top:10px'}, el('div',{class:'w',style:'flex:1'}, h.x.w), el('span',{class:'badge '+badge[0]}, badge[1]), el('button',{class:'btn ghost sm',type:'button',onclick:()=>TTS.speak(h.x.w,'W',{rate:.9})}, '발음')),
+        el('div',{class:'row',style:'margin-top:8px'}, h.res!=='miss'? el('button',{class:'btn sec sm neg',type:'button',style:'color:var(--fg-error);border-color:var(--bd-error)',onclick:()=>{ regrade(h,'miss'); toast('몰랐음으로 바꿈. 세션 끝에 다시 나옴'); draw(); }}, '몰랐음으로 바꾸기') : el('button',{class:'btn sec sm',type:'button',onclick:()=>{ regrade(h,'ok'); toast('알았음으로 바꿈'); draw(); }}, '알았음으로 바꾸기'),
+          el('span',{class:'spacer'}), el('button',{class:'btn sm',type:'button',onclick:closeLookup}, '닫기')),
+        entryNode(h.x))); };
+    sh.tabIndex=-1; const keyH=e=>{ if (LK_OPEN!==sh){ document.removeEventListener('keydown',keyH,true); return; } e.stopPropagation(); if (e.key==='ArrowLeft' && idx>0){ e.preventDefault(); idx--; draw(); } else if (e.key==='ArrowRight' && idx<HIST.length-1){ e.preventDefault(); idx++; draw(); } else if (e.key==='Escape') closeLookup(); }; document.addEventListener('keydown',keyH,true);
+    draw(); sh.dataset.w='__prev'; document.body.append(sh); LK_OPEN=sh; setTimeout(()=>sh.focus(),30); };
   const show=()=>{
     if (i>=queue.length){ if (again.length){ queue=again; again=[]; i=0; } else { hold.innerHTML=''; document.onkeydown=null; onDone({c:known, t:total}); return; } }
-    const x=queue[i]; prog.firstChild.style.width=Math.round(i/queue.length*100)+'%'; if (window.CUR_PROG) CUR_PROG(i, queue.length); const inf=V.get()[x.w];
+    const x=queue[i]; curSnap=JSON.parse(JSON.stringify(V.get()[x.w]||null)); curWasAgain=AGAIN.has(x.w); prog.firstChild.style.width=Math.round(i/queue.length*100)+'%'; if (window.CUR_PROG) CUR_PROG(i, queue.length); const inf=V.get()[x.w];
     const meta=el('div',{class:'pos'}, `${x.lvl||''} · ${x.deck==='adv'? '고급' : 'AWL '+x.sub} · ${x.fam} · ${inf? '복습 '+inf.seen+'회':'새 단어'}`);
     const back=el('div',{class:'hidden'}, entryNode(x));
-    const knownB=el('button',{class:'btn ghost sm',type:'button',onclick:()=>{ VK(x.w); if (!AGAIN.has(x.w)) known++; next(); }}, '이미 앎');
-    const card=el('div',{class:'flash',style:'text-align:left;justify-content:flex-start'}, meta, HIST.length? el('button',{class:'btn ghost sm prevb',type:'button','aria-label':'이전 단어 보기',onclick:showPrev}, '‹ 이전 단어') : null);
+    const knownB=el('button',{class:'btn ghost sm',type:'button',onclick:()=>{ lastRes='known'; VK(x.w); if (!AGAIN.has(x.w)) known++; next(); }}, '이미 앎');
+    const card=el('div',{class:'flash',style:'text-align:left;justify-content:flex-start'}, meta, HIST.length? el('button',{class:'btn ghost sm prevb',type:'button','aria-label':'이전 단어 보기',onclick:()=>showPrev()}, '‹ 이전 단어') : null);
     const cue = mode==='type'? cueSentence(x) : null;
     if (cue){
       card.append(el('div',{class:'cue'}, senses(x).map(s=>s.ko).join(' / ')));
@@ -1126,7 +1147,7 @@ function runVocab(host, nNew, maxCards, onDone, opts={}){
       const check=el('button',{class:'btn',type:'button'}, '확인'), pass=el('button',{class:'btn sec',type:'button'}, '모름');
       const reveal=(ok,typed)=>{ inp.disabled=true; inp.classList.add(ok?'ok':'ng'); check.classList.add('hidden'); pass.classList.add('hidden'); knownB.classList.add('hidden');
         card.querySelector('.ex').replaceWith(el('div',{class:'ex'}, cue.before, el('b',{}, cue.form), cue.after));
-        if (ok){ VG(x.w,true); if (!AGAIN.has(x.w)) known++; } else { VG(x.w,false); AGAIN.add(x.w); again.push(x); }
+        lastRes= ok? 'ok':'miss'; if (ok){ VG(x.w,true); if (!AGAIN.has(x.w)) known++; } else { VG(x.w,false); AGAIN.add(x.w); again.push(x); }
         res.innerHTML=''; res.append(el('span',{class:'badge '+(ok?'ok':'ng')}, ok? '정답' : `정답 ${cue.form}${typed? ' · 입력 '+typed:''}`), el('span',{class:'spacer'}), el('button',{class:'btn',type:'button',onclick:next}, '다음'));
         res.classList.remove('hidden'); back.classList.remove('hidden');
         if (window.CUR_AB){ res.classList.add('hidden'); CUR_AB.set({state: ok?'ok':'ng', title: ok? '정답이야' : '아쉬워', detail: ok? cue.form : `정답 ${cue.form}${typed? ' · 입력 '+typed:''}`, primary:{label:'다음', onClick:next}}); } else res.querySelector('.btn').focus(); };
@@ -1142,11 +1163,11 @@ function runVocab(host, nNew, maxCards, onDone, opts={}){
       card.append(el('div',{class:'small',style:'text-align:center;margin-top:6px'}, '뜻을 떠올린 뒤 뜻 보기'));
       const flip=el('button',{class:'btn sec',type:'button'}, '뜻 보기'), yes=el('button',{class:'btn hidden',type:'button'}, '알았음'), no=el('button',{class:'btn sec hidden',type:'button'}, '몰랐음');
       flip.onclick=()=>{ back.classList.remove('hidden'); flip.classList.add('hidden'); yes.classList.remove('hidden'); no.classList.remove('hidden'); yes.focus(); if (window.CUR_AB) CUR_AB.set({even:true, primary:{label:'알았음', onClick:()=>yes.onclick()}, secondary:{label:'몰랐음', neg:true, onClick:()=>no.onclick()}}); window.scrollTo({top:0}); };
-      yes.onclick=()=>{ VG(x.w,true); if (!AGAIN.has(x.w)) known++; next(); };
-      no.onclick=()=>{ VG(x.w,false); AGAIN.add(x.w); again.push(x); next(); };
+      yes.onclick=()=>{ lastRes='ok'; VG(x.w,true); if (!AGAIN.has(x.w)) known++; next(); };
+      no.onclick=()=>{ lastRes='miss'; VG(x.w,false); AGAIN.add(x.w); again.push(x); next(); };
       card.append(el('div',{class:'row',style:'justify-content:center;margin-top:8px'}, knownB, window.CUR_AB? null : flip, window.CUR_AB? null : no, window.CUR_AB? null : yes), back);
       if (window.CUR_AB) CUR_AB.set({even:true, primary:{label:'뜻 보기', onClick:()=>flip.onclick()}, secondary:{label:'몰랐음', neg:true, onClick:()=>{ flip.onclick(); no.onclick(); }}});
-      document.onkeydown=e=>{ if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return; if (e.key===' '&&!flip.classList.contains('hidden')){ e.preventDefault(); flip.onclick(); } else if (e.key==='ArrowLeft'){ e.preventDefault(); showPrev(); } else if (e.key==='1'){ e.preventDefault(); if (!flip.classList.contains('hidden')) flip.onclick(); no.onclick(); } else if (e.key==='2'&&!yes.classList.contains('hidden')){ e.preventDefault(); yes.onclick(); } };
+      document.onkeydown=e=>{ if (LK_OPEN) return; if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return; if (e.key===' '&&!flip.classList.contains('hidden')){ e.preventDefault(); flip.onclick(); } else if (e.key==='ArrowLeft'){ e.preventDefault(); showPrev(); } else if (e.key==='1'){ e.preventDefault(); if (!flip.classList.contains('hidden')) flip.onclick(); no.onclick(); } else if (e.key==='2'&&!yes.classList.contains('hidden')){ e.preventDefault(); yes.onclick(); } };
     }
     hold.innerHTML=''; hold.append(card, el('p',{class:'small',style:'text-align:center'}, `${i+1} / ${queue.length}`+(mode==='type'? ' · Enter 확인' : ' · Enter 뜻 보기 · 1 몰랐음 · 2 알았음')));
   };
@@ -1535,6 +1556,7 @@ const GROUP_OF = b => { const w=(b.block||'').split(' ')[0]; return ['아침','�
 const GROUP_HINT = {아침:'출근 전 25분. 소리 내서', 점심:'점심시간 20분', 저녁:'메인 학습', 세션:''};
 function secOf(act){ return (ACT[act]||{}).sec||'all'; }
 function ringSvg(p){ const r=27, c=2*Math.PI*r; return `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg>`; }
+const HEART=()=>{ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('aria-hidden','true'); s.innerHTML='<path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.4 2.5.8-1.3 2.3-2.5 4.4-2.5 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/>'; return s; };
 function greeting(){ const h=new Date().getHours(); return h<11? '좋은 아침' : h<17? '오후도 화이팅' : '오늘 마무리할 시간'; }
 function nextBlockOf(blocks, dd){ return blocks.find(b=>!dd.blocks[b.key]); }
 VIEWS.today = ()=>{
@@ -1550,6 +1572,13 @@ VIEWS.today = ()=>{
   if (locked) root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'},
     el('div',{class:'gh'}, el('div',{class:'n'}, '시험 접수 확인')), el('div',{class:'small'}, `1차 ${settings.test1.slice(5).replace('-','/')}, 2차 ${settings.test2.slice(5).replace('-','/')} 접수됐는지 ETS에서 확인. 확인해야 오늘 학습이 열려.`),
     el('div',{class:'row',style:'margin-top:12px'}, el('a',{class:'btn sm',href:'https://www.ets.org/toefl/test-takers/ibt/register.html',target:'_blank',rel:'noopener'}, 'ETS 열기'), el('button',{class:'btn sec sm',type:'button',onclick:()=>{ settings.registered=true; saveSettings(); toast('좋아. 이제 시작'); go('today'); }}, '접수 확인함')))));
+  // week strip
+  const mon=addDays(d, -((k.w+6)%7)); const wk=el('div',{class:'week','aria-label':'이번 주 학습'});
+  ['월','화','수','목','금','토','일'].forEach((n,i)=>{ const x=addDays(mon,i); const v=DAYS.all()[x]; const bl=v? Object.keys(v.blocks||{}).length:0; const plan=x===d? blocks.length : 0;
+    const cls = DAYS.frozen(x)? 'frz' : (x===settings.test1||x===settings.test2)? 'exam' : (v && (x<d? bl>0 : plan && bl>=plan))? 'full' : (v && (bl||v.minutes))? 'part' : '';
+    const studied = DAYS.active(x); const isExam=x===settings.test1||x===settings.test2;
+    wk.append(el('div',{class:'wd '+(studied? 'heart' : cls==='frz'? 'frz' : isExam? 'exam' : '')+(x===d?' today':'')+(x>d && !studied?' future':'')}, el('i',{'aria-label': studied? '학습함' : ''}, studied? HEART() : isExam? '시험' : cls==='frz'? '쉼' : x.slice(8).replace(/^0/,'')), n)); });
+  root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'}, el('div',{class:'gh'}, el('div',{class:'n'}, '이번 주 출석'), el('span',{class:'m'}, `연속 ${DAYS.streak()}일 · 이번 주 ${[0,1,2,3,4,5,6].filter(i=>DAYS.active(addDays(mon,i))).length}일`)), wk)));
   // predicted score (Santa-style)
   const eb=estimateBands(); const secs=['reading','listening','writing','speaking'];
   const sum=secs.reduce((a,s)=>a+(eb[s].band||0),0); const known=secs.filter(s=>eb[s].band!=null).length;
@@ -1577,12 +1606,6 @@ VIEWS.today = ()=>{
   if (!blocks.length) ses.append(el('div',{class:'note',style:'margin-top:12px'}, '오늘 계획된 학습 없음. 연습 탭에서 자유 연습.'));
   if (blocks.length && !nb) ses.prepend(el('div',{class:'allset',style:'margin:0 0 12px'}, el('div',{class:'t'}, '오늘 학습 완료'), el('div',{}, `${blocks.length}개, ${dd.minutes||0}분. 연속 ${DAYS.streak()}일째. 내일 이 시간에 다시.`)));
   root.append(ses);
-  // week strip
-  const mon=addDays(d, -((k.w+6)%7)); const wk=el('div',{class:'week','aria-label':'이번 주 학습'});
-  ['월','화','수','목','금','토','일'].forEach((n,i)=>{ const x=addDays(mon,i); const v=DAYS.all()[x]; const bl=v? Object.keys(v.blocks||{}).length:0; const plan=x===d? blocks.length : 0;
-    const cls = DAYS.frozen(x)? 'frz' : (x===settings.test1||x===settings.test2)? 'exam' : (v && (x<d? bl>0 : plan && bl>=plan))? 'full' : (v && (bl||v.minutes))? 'part' : '';
-    wk.append(el('div',{class:'wd '+cls+(x===d?' today':'')+(x>d && !cls?' future':'')}, el('i',{}, x===settings.test1||x===settings.test2? '시험' : cls==='frz'? '쉼' : (cls==='full'? '✓' : x.slice(8).replace(/^0/,''))), n)); });
-  root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'}, el('div',{class:'gh'}, el('div',{class:'n'}, '이번 주'), el('span',{class:'m'}, `연속 ${DAYS.streak()}일 · 주 2일 쉼 허용`)), wk)));
   // secondary info
   const shown=fired.filter(r=>!r.lock);
   if (shown.length){ const f=el('details',{class:'sec fold'}, el('summary',{}, `오늘 자동 조정 ${shown.length}개`));
@@ -1612,7 +1635,7 @@ function makeActionBar(){
 }
 // Enter = press the bar's primary button (not while typing in a field)
 document.addEventListener('keydown',e=>{ if (e.key!=='Enter' || e.repeat || e.isComposing) return; const t=e.target; if (t && /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(t.tagName)) return;
-  const AB=window.CUR_AB; if (!AB || !AB.el.isConnected || AB.el.classList.contains('hidden-bar')) return; const b=AB.el.querySelector('.btn:not(.sec)'); if (b && !b.disabled){ e.preventDefault(); b.click(); } });
+  if (LK_OPEN) return; const AB=window.CUR_AB; if (!AB || !AB.el.isConnected || AB.el.classList.contains('hidden-bar')) return; const b=AB.el.querySelector('.btn:not(.sec)'); if (b && !b.disabled){ e.preventDefault(); b.click(); } });
 function qcardWrap(node){ return el('div',{class:'qcard'}, node); }
 function buildSteps(act, items){
   const steps=[];
