@@ -692,7 +692,7 @@ const GLOSS = JSON.parse(document.getElementById('gloss').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-06 17:38';
+const BUILD = '2026-10-06 17:41';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1981,7 +1981,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('pagehide',()=>{ TTS.stop(); REC.release(); });
 const startView=(location.hash||'').slice(1); go(['today','practice','vocab','progress','library'].includes(startView)? startView : 'today');
-if ('serviceWorker' in navigator && location.protocol==='https:'){ navigator.serviceWorker.register('sw.js').then(r=>{ try{ r.update(); }catch(e){} setInterval(()=>{ try{ r.update(); }catch(e){} }, 30*60*1000); }).catch(()=>{}); let reloaded=false; navigator.serviceWorker.addEventListener('controllerchange',()=>{ if (reloaded || document.body.classList.contains('drilling')) return; reloaded=true; location.reload(); }); }
+if ('serviceWorker' in navigator && location.protocol==='https:'){ navigator.serviceWorker.register('sw.js').then(r=>{ const up=()=>{ try{ const q=r.update(); if (q&&q.catch) q.catch(()=>{}); }catch(e){} }; up(); setInterval(up, 30*60*1000); }).catch(()=>{}); let reloaded=false; navigator.serviceWorker.addEventListener('controllerchange',()=>{ if (reloaded || document.body.classList.contains('drilling')) return; reloaded=true; location.reload(); }); }
 </script>
 </body>
 </html>
