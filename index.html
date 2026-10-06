@@ -491,6 +491,8 @@ body.has-cta{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 .flash .ipa{text-align:center;font-size:17px}
 .prevb{position:absolute;top:12px;right:12px}
 .flash{position:relative}
+.abar .btns.even .btn{flex:1 1 0}
+.abar .btn.sec.neg{color:var(--fg-error);border-color:var(--bd-error);border-width:1.5px}
 </style>
 </head>
 <body>
@@ -692,7 +694,7 @@ const GLOSS = JSON.parse(document.getElementById('gloss').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-06 17:41';
+const BUILD = '2026-10-06 22:10';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1132,18 +1134,18 @@ function runVocab(host, nNew, maxCards, onDone, opts={}){
       pass.onclick=()=>reveal(false,'');
       inp.addEventListener('keydown',e=>{ if (e.key==='Enter'){ e.preventDefault(); check.click(); } });
       card.append(el('div',{class:'row',style:'margin-top:8px'}, el('button',{class:'btn ghost sm',type:'button','aria-label':'발음 듣기',onclick:()=>TTS.speak(x.w,'W',{rate:.9})}, '발음 듣기'), knownB, el('span',{class:'spacer'}), window.CUR_AB? null : pass, window.CUR_AB? null : check), res, back);
-      if (window.CUR_AB) CUR_AB.set({primary:{label:'확인', onClick:()=>check.onclick()}, secondary:{label:'모름', onClick:()=>pass.onclick()}});
+      if (window.CUR_AB) CUR_AB.set({even:true, primary:{label:'확인', onClick:()=>check.onclick()}, secondary:{label:'모름', neg:true, onClick:()=>pass.onclick()}});
       document.onkeydown=null; setTimeout(()=>inp.focus(), 50);
     } else {
       card.append(el('div',{class:'word',style:'text-align:center;margin:8px 0 4px'}, x.w), x.ipa? el('div',{class:'ipa'}, `/${x.ipa}/`) : null, el('div',{class:'row',style:'justify-content:center'}, el('button',{class:'btn ghost sm',type:'button',onclick:()=>TTS.speak(x.w,'W',{rate:.9})}, '발음 듣기')));
       { const ex0=(senses(x).find(z=>z.ex)||{}).ex; if (ex0) card.append(el('div',{class:'ex',style:'text-align:left;margin-top:8px'}, hlWord(ex0, x.w))); }
       card.append(el('div',{class:'small',style:'text-align:center;margin-top:6px'}, '뜻을 떠올린 뒤 뜻 보기'));
       const flip=el('button',{class:'btn sec',type:'button'}, '뜻 보기'), yes=el('button',{class:'btn hidden',type:'button'}, '알았음'), no=el('button',{class:'btn sec hidden',type:'button'}, '몰랐음');
-      flip.onclick=()=>{ back.classList.remove('hidden'); flip.classList.add('hidden'); yes.classList.remove('hidden'); no.classList.remove('hidden'); yes.focus(); if (window.CUR_AB) CUR_AB.set({primary:{label:'알았음', onClick:()=>yes.onclick()}, secondary:{label:'몰랐음', onClick:()=>no.onclick()}}); window.scrollTo({top:0}); };
+      flip.onclick=()=>{ back.classList.remove('hidden'); flip.classList.add('hidden'); yes.classList.remove('hidden'); no.classList.remove('hidden'); yes.focus(); if (window.CUR_AB) CUR_AB.set({even:true, primary:{label:'알았음', onClick:()=>yes.onclick()}, secondary:{label:'몰랐음', neg:true, onClick:()=>no.onclick()}}); window.scrollTo({top:0}); };
       yes.onclick=()=>{ VG(x.w,true); if (!AGAIN.has(x.w)) known++; next(); };
       no.onclick=()=>{ VG(x.w,false); AGAIN.add(x.w); again.push(x); next(); };
       card.append(el('div',{class:'row',style:'justify-content:center;margin-top:8px'}, knownB, window.CUR_AB? null : flip, window.CUR_AB? null : no, window.CUR_AB? null : yes), back);
-      if (window.CUR_AB) CUR_AB.set({primary:{label:'뜻 보기', onClick:()=>flip.onclick()}, secondary:{label:'몰랐음', onClick:()=>{ flip.onclick(); no.onclick(); }}});
+      if (window.CUR_AB) CUR_AB.set({even:true, primary:{label:'뜻 보기', onClick:()=>flip.onclick()}, secondary:{label:'몰랐음', neg:true, onClick:()=>{ flip.onclick(); no.onclick(); }}});
       document.onkeydown=e=>{ if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return; if (e.key===' '&&!flip.classList.contains('hidden')){ e.preventDefault(); flip.onclick(); } else if (e.key==='ArrowLeft'){ e.preventDefault(); showPrev(); } else if (e.key==='1'){ e.preventDefault(); if (!flip.classList.contains('hidden')) flip.onclick(); no.onclick(); } else if (e.key==='2'&&!yes.classList.contains('hidden')){ e.preventDefault(); yes.onclick(); } };
     }
     hold.innerHTML=''; hold.append(card, el('p',{class:'small',style:'text-align:center'}, `${i+1} / ${queue.length}`+(mode==='type'? ' · Enter 확인' : ' · Enter 뜻 보기 · 1 몰랐음 · 2 알았음')));
@@ -1603,8 +1605,8 @@ function makeActionBar(){
   const fbT=el('div',{class:'t'}), fbD=el('div',{class:'d'}); const btns=el('div',{class:'btns'});
   const bar=el('div',{class:'abar'}, el('div',{class:'in'}, el('div',{class:'fb'}, fbT, fbD), btns));
   const api={ el:bar, set(o={}){ bar.classList.remove('ok','ng','hidden-bar'); if (o.state) bar.classList.add(o.state); if (o.hide) bar.classList.add('hidden-bar');
-      fbT.textContent=o.title||''; fbD.textContent=o.detail||''; btns.innerHTML='';
-      if (o.secondary) btns.append(el('button',{class:'btn sec',type:'button',onclick:o.secondary.onClick}, o.secondary.label));
+      fbT.textContent=o.title||''; fbD.textContent=o.detail||''; btns.innerHTML=''; btns.classList.toggle('even', !!o.even);
+      if (o.secondary) btns.append(el('button',{class:'btn sec'+(o.secondary.neg?' neg':''),type:'button',onclick:o.secondary.onClick}, o.secondary.label));
       if (o.primary){ const b=el('button',{class:'btn',type:'button',disabled:o.primary.disabled||null,onclick:o.primary.onClick}, o.primary.label); btns.append(b); api.primaryBtn=b; } } };
   return api;
 }
