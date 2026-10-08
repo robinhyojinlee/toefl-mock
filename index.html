@@ -699,7 +699,7 @@ const GLOSS = JSON.parse(document.getElementById('gloss').textContent);
 const AUDIO = new Set(JSON.parse(document.getElementById('audio').textContent));
 function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
-const BUILD = '2026-10-06 22:56';
+const BUILD = '2026-10-08 16:40';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -1103,7 +1103,18 @@ function cueSentence(x){ // pick a sense example that contains the word, blank i
 }
 function runVocab(host, nNew, maxCards, onDone, opts={}){
   const VG=opts.practice? ()=>{} : (w,ok)=>V.grade(w,ok), VK=opts.practice? ()=>{} : w=>V.known(w);
-  const S=V.stats(); const dues=shuffle(S.due).slice(0, maxCards); let queue= opts.queue? shuffle(opts.queue) : dues.concat(S.fresh.slice(0, Math.max(0, Math.min(nNew, maxCards-dues.length))));
+  const S=V.stats(); let queue;
+  if (opts.queue) queue=shuffle(opts.queue);
+  else {
+    // 학문 이름 카드는 일반 단어 4장에 1장꼴로만 섞는다. 나머지는 기한 유지, 다음 날이나 학문 이름 퀴즈로
+    const isF=x=>x.deck==='field', due=shuffle(S.due), fd=due.filter(isF), od=due.filter(x=>!isF(x));
+    const odT=od.slice(0, maxCards); let base=odT.concat(S.fresh.slice(0, Math.max(0, Math.min(nNew, maxCards-odT.length))));
+    const fN= base.length? Math.min(fd.length, Math.max(2, Math.ceil(base.length/4))) : Math.min(fd.length, maxCards);
+    if (base.length+fN>maxCards) base=base.slice(0, Math.max(0, maxCards-fN));
+    const fs=fd.slice(0, fN), step=(base.length+1)/(fs.length+1); queue=[]; let fi=0;
+    base.forEach((x,k)=>{ queue.push(x); while (fi<fs.length && (fi+1)*step<=k+1) queue.push(fs[fi++]); });
+    while (fi<fs.length) queue.push(fs[fi++]);
+  }
   const total=queue.length; let i=0, again=[], known=0; const AGAIN=new Set(); const HIST=[];
   if (!total){ host.append(el('div',{class:'note ok'}, '오늘 볼 카드 없음. 복습 큐 비어 있음.')); onDone({c:0,t:0}); return; }
   let mode=settings.cardMode||'type';
