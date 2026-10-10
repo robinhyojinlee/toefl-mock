@@ -711,7 +711,7 @@ async function prefetchAudio(keys){ if (PREFETCHING || !('caches' in window) || 
   await Promise.all([worker(),worker(),worker(),worker()]);
   const all=await c.keys(); if (all.length>900){ for (const r of all.slice(0, all.length-900)) await c.delete(r); } }catch(e){} PREFETCHING=false; }
 function prefetchToday(){ try{ const {blocks}=blocksFor(); const keys=new Set(); blocks.forEach(b=>{ const A=ACT[b.activity]; if (!A || !A.bank || !['listening','speaking'].includes(A.sec)) return; const n=+b.count||1; const sets=b.activity==='interview'? Math.ceil(n/4) : b.activity==='listen_repeat'? Math.ceil(n/7) : n; pickItems(b.activity, sets+2).forEach(it=>itemAudioKeys(it).forEach(k=>keys.add(k))); }); if (keys.size) setTimeout(()=>prefetchAudio(keys), 1500); }catch(e){} }
-const BUILD = '2026-10-10 01:48';
+const BUILD = '2026-10-11 01:43';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -773,7 +773,9 @@ const DAYS = {
   put(d, v){ const all=this.all(); all[d]=v; store.set('days', all); },
   markBlock(key, minutes, date=today()){ const d=this.get(date); d.blocks[key]=true; d.minutes=(d.minutes||0)+minutes; this.put(date, d); },
   addMinutes(m){ const d=this.get(); d.minutes=(d.minutes||0)+m; this.put(today(), d); },
-  active(d){ const v=this.all()[d]; return !!(v && (Object.keys(v.blocks||{}).length || v.minutes>0)) || LOG.all().some(a=>a.date===d); },
+  touch(){ const t=today(); if (window.CUR_DRILL) CUR_DRILL.touched=true; if (this._touched===t) return; const d=this.get(t); const first=!this.active(t); if (!d.touched){ d.touched=true; this.put(t, d); } this._touched=t; this._vd=null; if (first) setTimeout(()=>toast(`오늘 출석 하트 찍힘 · 연속 ${this.streak()}일`), 50); },
+  vdays(){ if (!this._vd){ const S=new Set(); try{ Object.values(store.get('vocab',{})).forEach(r=>(r.days||[]).forEach(x=>S.add(x))); Object.values(store.get('tpl',{})).forEach(r=>(r.days||[]).forEach(x=>S.add(x))); }catch(e){} this._vd=S; setTimeout(()=>{ this._vd=null; }, 2000); } return this._vd; },
+  active(d){ const v=this.all()[d]; return !!(v && (Object.keys(v.blocks||{}).length || v.minutes>0 || v.touched)) || this.vdays().has(d) || LOG.all().some(a=>a.date===d); },
   frozen(d){ if (this.active(d) || d>=today()) return false; const f=firstDay(); if (!f || d<f) return false; const w=new Date(d+'T12:00:00'); const mon=addDays(d,-((w.getDay()+6)%7)); let used=0; for (let x=mon; x<d; x=addDays(x,1)) if (!this.active(x) && x>=f) used++; return used<2; },
   streak(){ let n=0, d=today(); if (!this.active(d)) d=addDays(d,-1); let guard=0; while((this.active(d) || this.frozen(d)) && guard++<400){ if (this.active(d)) n++; d=addDays(d,-1); } return n; }
 };
@@ -1125,8 +1127,8 @@ function freshOrder(list){
 }
 const V = { get(){ return store.get('vocab',{}); }, set(v){ store.set('vocab',v); },
   mark(r,res){ const t=today(); r.days=[...(r.days||[]).filter(d=>d!==t), t].slice(-14); r.res=Object.assign({}, r.res||{}); if (!r.res[t] || res==='miss') r.res[t]=res; const ks=Object.keys(r.res).sort(); while (ks.length>14) delete r.res[ks.shift()]; },
-  grade(w,ok){ const st=this.get(); const r=st[w]||{box:0,due:null,seen:0,wrong:0}; r.seen++; this.mark(r, ok?'ok':'miss'); if (ok){ r.box=Math.min(6,(r.box||0)+1); const ne=nextExam(); const cap= ne? Math.max(3, Math.floor(ne.days*0.2)) : 99; r.due=addDays(today(),Math.min(INTERVALS[r.box], cap)); } else { r.box=0; r.wrong++; r.known=false; r.due=today(); } st[w]=r; this.set(st); },
-  known(w){ const st=this.get(); const r=st[w]||{box:0,due:null,seen:0,wrong:0}; r.seen++; this.mark(r,'known'); r.box=6; r.known=true; r.due=addDays(today(),90); st[w]=r; this.set(st); },
+  grade(w,ok){ DAYS.touch(); const st=this.get(); const r=st[w]||{box:0,due:null,seen:0,wrong:0}; r.seen++; this.mark(r, ok?'ok':'miss'); if (ok){ r.box=Math.min(6,(r.box||0)+1); const ne=nextExam(); const cap= ne? Math.max(3, Math.floor(ne.days*0.2)) : 99; r.due=addDays(today(),Math.min(INTERVALS[r.box], cap)); } else { r.box=0; r.wrong++; r.known=false; r.due=today(); } st[w]=r; this.set(st); },
+  known(w){ DAYS.touch(); const st=this.get(); const r=st[w]||{box:0,due:null,seen:0,wrong:0}; r.seen++; this.mark(r,'known'); r.box=6; r.known=true; r.due=addDays(today(),90); st[w]=r; this.set(st); },
   stats(){ const st=this.get(), t=today(); const AW=ALLW(); const studied=AW.filter(x=>st[x.w]); return {st, studied, due:studied.filter(x=>st[x.w].due && st[x.w].due<=t), fresh:freshOrder(VOCAB.filter(x=>!st[x.w])), mastered:studied.filter(x=>(st[x.w].box||0)>=4).length, known:studied.filter(x=>st[x.w].known).length}; } };
 const esc = w => w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function findForm(ex, w){ // headword or an inflected form (yields, analyzed, proliferating)
@@ -1175,7 +1177,7 @@ function runVocab(host, nNew, maxCards, onDone, opts={}){
   const drawTabs=()=>{ tabs.innerHTML=''; [['flip','뜻 떠올리기 · 리딩용'],['type','철자 쓰기 · 빈칸용']].forEach(([k,t])=>tabs.append(el('button',{class:'chip',type:'button','aria-pressed':String(mode===k),onclick:()=>{ if (mode===k) return; if (cardDone){ toast('다음 카드에서 방식이 바뀜'); settings.cardMode=k; saveSettings(); return; } mode=k; settings.cardMode=k; saveSettings(); drawTabs(); show(); }}, t))); };
   drawTabs(); if (window.CUR_PROG) host.append(tabs, hold); else host.append(tabs, prog, hold);
   let curSnap=null, curWasAgain=false;
-  const next=()=>{ const cur=queue[i]; if (cur){ const st=V.get()[cur.w]||{}; const res=lastRes||'ok'; HIST.push({x:cur, snap:curSnap, res, counted: res!=='miss' && !curWasAgain}); } lastRes=null; i++; show(); };
+  const next=()=>{ DAYS.touch(); const cur=queue[i]; if (cur){ const st=V.get()[cur.w]||{}; const res=lastRes||'ok'; HIST.push({x:cur, snap:curSnap, res, counted: res!=='miss' && !curWasAgain}); } lastRes=null; i++; show(); };
   let lastRes=null;
   const regrade=(h,newRes)=>{ if (h.res===newRes) return;
     if (!opts.practice){ const st=V.get(); if (h.snap) st[h.x.w]=JSON.parse(JSON.stringify(h.snap)); else delete st[h.x.w]; V.set(st);
@@ -1256,7 +1258,7 @@ const TCARDS=(()=>{ const C=[];
   }
   return C; })();
 const UNIT_NAME = u => { const t=TPLS.find(x=>x.id===u); if (t) return `${TPL_NAME[t.group]} ${t.key}. ${t.name}`; return u.endsWith('|bank')? 'Academic Discussion 표현 뱅크' : u.endsWith('|tone')? 'Email 톤 공식' : u; };
-const TS = { get(){ return store.get('tpl',{}); }, set(v){ store.set('tpl',v); },
+const TS = { get(){ return store.get('tpl',{}); }, set(v){ DAYS.touch(); store.set('tpl',v); },
   grade(id,ok){ const st=this.get(); const r=st[id]||{box:0,due:null,seen:0,wrong:0}; r.seen++; if (ok){ r.box=Math.min(6,(r.box||0)+1); const ne=nextExam(); const cap= ne? Math.max(3, Math.floor(ne.days*0.2)) : 99; r.due=addDays(today(),Math.min(INTERVALS[r.box], cap)); } else { r.box=0; r.wrong=(r.wrong||0)+1; r.due=today(); } st[id]=r; this.set(st); },
   learned(u){ return !!this.get()['L|'+u]; }, markLearned(u){ const st=this.get(); st['L|'+u]={at:today()}; this.set(st); },
   queue(n, unit){ const st=this.get(), t=today(); const pool=unit? TCARDS.filter(c=>c.unit===unit) : TCARDS;
@@ -1614,7 +1616,7 @@ const VIEWS={}; const root=$('#main'); let current='today';
 const NAV=[['today','오늘'],['practice','연습'],['vocab','단어'],['progress','기록'],['library','자료']];
 function renderNav(){ for (const id of ['deskTabs','mobTabs']){ const n=document.getElementById(id); n.innerHTML=''; NAV.forEach(([k,t])=>n.append(el('button',{type:'button','aria-current':k===current?'page':null, onclick:()=>go(k)}, svg(ICON[k]), el('span',{}, t)))); } }
 let VIEW_SEQ=0, SPEAK_ACTIVE=false, LAST_ARG=null, RESET_ON_RETURN=false;
-function go(view, arg){ if (window.PENDING_RELOAD && view!=='drill'){ window.PENDING_RELOAD=false; location.hash=view; location.reload(); return; } TIMERS.forEach(t=>t.stop()); TIMERS.clear(); document.body.classList.remove('drilling','has-cta'); document.querySelectorAll('.abar,.home-cta').forEach(x=>x.remove()); window.CUR_AB=null; window.CUR_PROG=null; VIEW_SEQ++; SPEAK_ACTIVE=false; LAST_ARG=arg; TTS.stop(); REC.release(); document.onkeydown=null; current=view; renderNav(); root.innerHTML=''; VIEWS[view](arg); window.scrollTo(0,0); try{ history.replaceState(null,'','#'+view); }catch(e){} }
+function go(view, arg){ { const cd=window.CUR_DRILL; window.CUR_DRILL=null; if (cd && !cd.finished && cd.touched && !cd.resumable){ const m=Math.round((Date.now()-cd.t0)/60000); if (m>=1) DAYS.addMinutes(m); } } if (window.PENDING_RELOAD && view!=='drill'){ window.PENDING_RELOAD=false; location.hash=view; location.reload(); return; } TIMERS.forEach(t=>t.stop()); TIMERS.clear(); document.body.classList.remove('drilling','has-cta'); document.querySelectorAll('.abar,.home-cta').forEach(x=>x.remove()); window.CUR_AB=null; window.CUR_PROG=null; VIEW_SEQ++; SPEAK_ACTIVE=false; LAST_ARG=arg; TTS.stop(); REC.release(); document.onkeydown=null; current=view; renderNav(); root.innerHTML=''; VIEWS[view](arg); window.scrollTo(0,0); try{ history.replaceState(null,'','#'+view); }catch(e){} }
 function topMeta(){ const ne=nextExam(); const which = ne? (ne.date===settings.test1? '1차' : ne.date===settings.test2? '2차' : '3차') : '';
   $('#topMeta').textContent = ne? `${which} 시험 D-${ne.days}` : '시험 일정 지남'; }
 
@@ -1779,8 +1781,8 @@ VIEWS.drill = (o)=>{
   root.append(head, labelNode); if (o.note) root.append(el('div',{class:'note',style:'margin-bottom:12px'}, o.note)); const body=el('div'); root.append(body);
   const AB=makeActionBar(); document.body.append(AB.el); window.CUR_AB=AB; window.CUR_PROG=setProg; AB.set({hide:true});
 
-  let t0=Date.now(); let tmr=null; let finished=false;
-  const finishBlock=(summary)=>{ if (finished) return; finished=true; if (tmr) tmr.stop(); body.querySelectorAll('button.fin').forEach(b=>b.disabled=true); const mins=Math.max(1, Math.round((Date.now()-t0)/60000));
+  let t0=Date.now(); let tmr=null; let finished=false; window.CUR_DRILL={get t0(){ return t0; }, finished:false, touched:false, resumable:false};
+  const finishBlock=(summary)=>{ if (finished) return; finished=true; if (window.CUR_DRILL) CUR_DRILL.finished=true; if (tmr) tmr.stop(); body.querySelectorAll('button.fin').forEach(b=>b.disabled=true); const mins=Math.max(1, Math.round((Date.now()-t0)/60000));
     if (o.reviewRest && o.reviewRest.length){ DAYS.addMinutes(mins); const [nx,...rest]=o.reviewRest; body.append(el('div',{class:'result'}, el('div',{class:'small'}, summary.text||''), el('div',{class:'row',style:'margin-top:12px'}, el('button',{class:'btn',type:'button',onclick:()=>go('drill',{...o, act:'review', reviewNext:nx, reviewRest:rest})}, `다음 오답: ${ACT[nx.type].name}`)))); return; }
     if (o.blockKey) DAYS.markBlock(o.blockKey, mins, o.date); else DAYS.addMinutes(mins);
     try{ if ('Notification' in window && Notification.permission==='default' && navigator.setAppBadge && !store.get('askedNotif',false)){ store.set('askedNotif',true); Notification.requestPermission().then(updateBadge).catch(()=>{}); } }catch(e){} updateBadge();
@@ -1835,10 +1837,11 @@ VIEWS.drill = (o)=>{
       const refresh=()=>{ const ok=!st.ready || st.ready(); st.node.classList.toggle('hidden', !ok); if (waitNote) waitNote.classList.toggle('hidden', ok); if (ok) AB.set({primary:{label:'확인', onClick:check}}); else AB.set({primary:{label:st.notReady||'준비 중', disabled:true}}); };
       st.refresh=refresh; if (st.header) st.header.refresh=refresh; steps.forEach(x=>{ if (x.header===st.header) x.refresh=refresh; }); refresh(); if (st.header && i>0 && steps[i-1].header===st.header) setTimeout(()=>st.node.scrollIntoView({block:'start'}),30); else window.scrollTo(0,0); stepT0=Date.now(); };
     const myAns=st=>{ const ch=st.node.querySelector('input[type=radio]:checked'); if (ch) return +ch.value; const ins=[...st.node.querySelectorAll('.gap input')]; if (ins.length) return ins.map(x=>x.value); const ans=st.node.querySelector('.chunks.answer'); if (ans) return [...ans.querySelectorAll('.chunk')].map(c=>c.textContent).join(' '); return null; };
-    const record=(st,r)=>{ const x=res[st.id]||(res[st.id]={c:0,t:0,sec:0,ans:[]}); x.c+=r.c; x.t+=r.t; x.sec+=Math.round((Date.now()-stepT0)/1000); x.ans.push(myAns(st)); stepT0=Date.now(); };
+    const record=(st,r)=>{ DAYS.touch(); const x=res[st.id]||(res[st.id]={c:0,t:0,sec:0,ans:[]}); x.c+=r.c; x.t+=r.t; x.sec+=Math.round((Date.now()-stepT0)/1000); x.ans.push(myAns(st)); stepT0=Date.now(); };
     const check=()=>{ const st=steps[i]; if (!st || finished) return; if (!st.answered()){ toast('답을 먼저 골라줘'); return; } const r=st.check(); record(st,r); const ok=r.c===r.t;
       rev.push({ok, label:st.label, answer:r.answer, st, r}); if (i===steps.length-1 || steps[i+1].id!==st.id) logItem(st.id); setTimeout(()=>st.node.scrollIntoView({behavior:'smooth', block:'center'}), 30);
       AB.set({state: ok? 'ok':'ng', title: ok? '정답이야' : (r.partial? `${r.c} / ${r.t} 맞음` : '아쉬워'), detail: ok? '' : (r.answer? '정답 '+r.answer : '틀린 칸은 초록 글씨가 정답'), primary:{label: i===steps.length-1? '결과 보기' : '다음', onClick:next}}); };
+    if (RK && window.CUR_DRILL) CUR_DRILL.resumable=true;
     const saveRes=()=>{ if (!RK) return; try{ const S=store.get('resume',{}); Object.keys(S).forEach(k=>{ if (!k.startsWith(today())) delete S[k]; }); let j=i; while (j>0 && j<steps.length && steps[j-1].id===steps[j].id) j--; let C=base.C, T=base.T; logged.forEach(id=>{ const x=res[id]; if (x){ C+=x.c; T+=x.t; } }); S[RK]={act, ids:items.map(x=>x.id), i:j, n:steps.length, C, T, secs:Math.round((Date.now()-t0)/1000)}; store.set('resume',S); }catch(e){} };
     const next=()=>{ if (finished || i>=steps.length) return; i++; if (i<steps.length){ saveRes(); show(); } else done(); };
     const done=()=>{ if (finished) return; stage.innerHTML=''; let C=base.C,T=base.T; if (RK){ const S=store.get('resume',{}); delete S[RK]; store.set('resume',S); } const ids=Object.keys(res);
@@ -2031,12 +2034,14 @@ VIEWS.progress = ()=>{
   topMeta();
   { const n=LOG.all().filter(a=>ACT[a.type]&&ACT[a.type].bank&&a.t>0).length; root.append(el('section',{class:'sec'}, el('div',{class:'list'}, el('button',{class:'item',type:'button',onclick:()=>go('solved')}, el('div',{class:'body'}, el('div',{class:'t'}, `풀었던 문제 ${n}`), el('div',{class:'d'}, '날짜별 목록, 정답과 내 답, 해설, 다시 풀기')), svg(ICON.chev,'chev'))))); } const eb=estimateBands();
   root.append(el('section',{class:'sec'}, sectionHead('추정 밴드 (최근 14일)', el('span',{class:'badge '+(eb.total==null?'':eb.total>=5.5?'ok':'warn')}, eb.total==null? '총점 산출 전' : `총점 ${eb.total.toFixed(1)} · 합 ${eb.sum.toFixed(1)}/21.0`)), bandTiles(eb),
-    el('p',{class:'small'}, 'R, L은 정답률 환산. W는 Build a Sentence와 자기 채점 평균 + 1. S는 Listen and Repeat 35점 + Interview 20점 비중. 자기 채점이 섞인 추정치라 실제 모의고사와 Claude 채점으로 보정 필요.')));
+    el('p',{class:'small'}, 'R, L은 정답률 환산. W는 Build a Sentence와 자기 채점 평균. S는 Listen and Repeat 35점 + Interview 20점 비중. 자기 채점이 섞인 추정치라 실제 모의고사와 Claude 채점으로 보정 필요.')));
   // heatmap: last 5 weeks + to exam
   const heat=el('div',{class:'heat','aria-label':'최근 학습 달력'}); const t=today(); const start=addDays(t,-((dayKind(t).w+6)%7)-28);
-  for (let i=0;i<42;i++){ const d=addDays(start,i); const v=DAYS.all()[d]; const m=v? v.minutes||0 : 0; const isExam=d===settings.test1||d===settings.test2;
+  const vcards={}; try{ Object.values(store.get('vocab',{})).forEach(r=>Object.keys(r.res||{}).forEach(x=>vcards[x]=(vcards[x]||0)+1)); }catch(e){}
+  const minsOf=d=>{ const v=DAYS.all()[d]; const m=v? v.minutes||0 : 0; return m || (vcards[d]? Math.max(1, Math.round(vcards[d]*12/60)) : 0) || (DAYS.active(d)? 1 : 0); };
+  for (let i=0;i<42;i++){ const d=addDays(start,i); const m=minsOf(d); const isExam=d===settings.test1||d===settings.test2;
     heat.append(el('i',{class:(d>t?'future':m>=90?'l3':m>=40?'l2':m>0?'l1':'')+(d===t?' today':'')+(isExam?' exam':''), title:`${d} ${m}분${isExam?' 시험':''}`})); }
-  const all=DAYS.all(); const activeDays=Object.keys(all).filter(d=>DAYS.active(d)).length; const mins=Object.values(all).reduce((a,v)=>a+(v.minutes||0),0);
+  const all=DAYS.all(); const dset=new Set([...Object.keys(all), ...DAYS.vdays(), ...LOG.all().map(a=>a.date)]); const actD=[...dset].filter(d=>d && DAYS.active(d)); const activeDays=actD.length; const mins=actD.reduce((a,d)=>a+minsOf(d),0);
   root.append(el('section',{class:'sec'}, sectionHead('학습 달력', el('span',{class:'small'}, `학습일 ${activeDays}일 · 누적 ${Math.round(mins/60*10)/10}시간 · 연속 ${DAYS.streak()}일`)), el('div',{class:'panel'}, el('div',{class:'row small',style:'margin-bottom:8px;gap:12px'}, '월 화 수 목 금 토 일 순 · 진할수록 오래'), heat)));
   // per type accuracy
   const tb=el('table',{class:'tbl'}, el('thead',{}, el('tr',{}, el('th',{},'유형'), el('th',{class:'n'},'7일'), el('th',{class:'n'},'이전 7일'), el('th',{class:'n'},'누적'), el('th',{class:'n'},'평균 초'))));
