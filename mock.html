@@ -408,7 +408,7 @@ function beep(freq=880, ms=180){ try{ const ctx = beep.ctx || (beep.ctx = new (w
 /* ---------- recorder ---------- */
 const REC = {
   stream:null,
-  async ensure(){ if (this.stream) return true; try{ this.stream = await navigator.mediaDevices.getUserMedia({audio:true}); return true; }catch(e){ alert('마이크 권한이 필요하다. 브라우저 주소창의 권한 설정에서 마이크를 허용한 뒤 다시 시도.'); return false; } },
+  async ensure(){ if (this.stream && this.stream.getTracks().some(t=>t.readyState==='live')) return true; this.stream=null; try{ this.stream = await navigator.mediaDevices.getUserMedia({audio:true}); return true; }catch(e){ alert('마이크 권한이 필요하다. 브라우저 주소창의 권한 설정에서 마이크를 허용한 뒤 다시 시도.'); return false; } },
   record(seconds, onTick, ctrl={}){
     return new Promise(async res=>{
       if (!(await this.ensure())) return res({blob:null, text:''});
@@ -666,7 +666,7 @@ function taskListenRepeat(set, opts){
     const my=VSEQ; for (let i=0;i<set.sentences.length;i++){ if (my!==VSEQ) return;
       const s = set.sentences[i];
       status.innerHTML=''; status.append(el('div',{class:'big'}, `문장 ${i+1} / 7`), el('div',{class:'lab'}, '듣는 중'));
-      await TTS.speak(s, i%2? 'M':'W'); if (my!==VSEQ) return; await wait(250); if (my!==VSEQ) return; beep();
+      if (REC.stream){ REC.stream.getTracks().forEach(t=>t.stop()); REC.stream=null; } await TTS.speak(s, i%2? 'M':'W'); if (my!==VSEQ) return; await wait(250); if (my!==VSEQ) return; beep();
       const ctrl={};
       stopBtn.disabled=false; stopBtn.onclick=()=>ctrl.stop&&ctrl.stop();
       const r = await REC.record(10, left=>{ status.innerHTML=''; status.append(el('div',{class:'big rec'}, el('i',{class:'dot'}), ` ${left}s`), el('div',{class:'lab'}, `문장 ${i+1} 따라 말하기`)); }, ctrl);
@@ -711,7 +711,7 @@ function taskInterview(set, opts){
       const q=set.questions[i];
       status.innerHTML=''; status.append(el('div',{class:'big'}, `질문 ${i+1} / 4`), el('div',{class:'lab'}, '질문을 듣는 중'));
       qshow.classList.remove('hidden'); qshow.textContent = q;
-      await TTS.speak(q, 'W'); if (my!==VSEQ) return; await wait(200); if (my!==VSEQ) return; beep();
+      if (REC.stream){ REC.stream.getTracks().forEach(t=>t.stop()); REC.stream=null; } await TTS.speak(q, 'W'); if (my!==VSEQ) return; await wait(200); if (my!==VSEQ) return; beep();
       const ctrl={}; stopBtn.disabled=false; stopBtn.onclick=()=>ctrl.stop&&ctrl.stop();
       const r = await REC.record(45, left=>{ status.innerHTML=''; status.append(el('div',{class:'big rec'}, el('i',{class:'dot'}), ` ${left}s`), el('div',{class:'lab'}, `질문 ${i+1} 답변 중 (목표 약 100단어)`)); }, ctrl);
       stopBtn.disabled=true;

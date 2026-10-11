@@ -283,6 +283,7 @@ details summary{cursor:pointer;color:var(--fg-subtle);font-size:13px;padding:6px
 .hello .phase{font-size:13px;line-height:18px;color:var(--fg-highlight);font-weight:600}
 .hello h1{font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.48px}
 .hello .sub2{color:var(--fg-subtle);font-size:14px;line-height:22px}
+.hello .cheer{font-size:16px;line-height:24px;font-weight:600;color:var(--fg-highlight)}
 .next{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;background:var(--bg-primary);color:var(--fg-on-primary);border-radius:16px;padding:20px;margin-top:16px;border:0;width:100%;text-align:left;cursor:pointer}
 .next:hover{background:var(--bg-primary-hover)}
 .next .k{font-size:12px;line-height:16px;opacity:.8;font-weight:600}
@@ -702,7 +703,7 @@ function fnv(s){ let h=0x811c9dc5; for (let i=0;i<s.length;i++){ h^=s.charCodeAt
 { const ap=Element.prototype.append, pp=Element.prototype.prepend; Element.prototype.append=function(...k){ return ap.apply(this, k.filter(x=>x!=null && x!==false)); }; Element.prototype.prepend=function(...k){ return pp.apply(this, k.filter(x=>x!=null && x!==false)); }; }
 const audioKey=(g,t)=>fnv((g==='M'?'M':'W')+'|'+String(t).trim());
 // offline audio: the app stores mp3 blobs in a stable cache (audio-v1) and plays them via object URLs (no Range issues on iOS)
-const ACACHE='audio-v1'; const AURL=new Map();
+const ACACHE='audio-v2'; try{ caches.delete('audio-v1'); }catch(e){} const AURL=new Map();
 async function cachedAudioURL(k){ const path='audio/'+k+'.mp3'; if (AURL.has(k)) return AURL.get(k); try{ if (!('caches' in window)) return path; const c=await caches.open(ACACHE); const r=await c.match(path); if (!r) return path; const u=URL.createObjectURL(await r.blob()); if (AURL.size>60){ const [k0,u0]=AURL.entries().next().value; URL.revokeObjectURL(u0); AURL.delete(k0); } AURL.set(k,u); return u; }catch(e){ return path; } }
 function itemAudioKeys(it){ const out=new Set(); const walk=v=>{ if (typeof v==='string'){ for (const g of ['M','W']){ const k=audioKey(g,v); if (AUDIO.has(k)) out.add(k); } } else if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v==='object') Object.values(v).forEach(walk); }; walk(it); return out; }
 let PREFETCHING=false;
@@ -711,7 +712,7 @@ async function prefetchAudio(keys){ if (PREFETCHING || !('caches' in window) || 
   await Promise.all([worker(),worker(),worker(),worker()]);
   const all=await c.keys(); if (all.length>900){ for (const r of all.slice(0, all.length-900)) await c.delete(r); } }catch(e){} PREFETCHING=false; }
 function prefetchToday(){ try{ const {blocks}=blocksFor(); const keys=new Set(); blocks.forEach(b=>{ const A=ACT[b.activity]; if (!A || !A.bank || !['listening','speaking'].includes(A.sec)) return; const n=+b.count||1; const sets=b.activity==='interview'? Math.ceil(n/4) : b.activity==='listen_repeat'? Math.ceil(n/7) : n; pickItems(b.activity, sets+2).forEach(it=>itemAudioKeys(it).forEach(k=>keys.add(k))); }); if (keys.size) setTimeout(()=>prefetchAudio(keys), 1500); }catch(e){} }
-const BUILD = '2026-10-11 01:43';
+const BUILD = '2026-10-11 12:05';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -848,6 +849,8 @@ const REC = {
   async ensure(){ if (this.stream && this.stream.getTracks().some(t=>t.readyState==='live')) return true; this.stream=null; try{ this.stream = await navigator.mediaDevices.getUserMedia({audio:true}); return true; }catch(e){ toast('마이크 권한 필요. 주소창 권한 설정에서 허용'); return false; } },
   active:null,
   abort(){ const c=this.active; this.active=null; if (c&&c.stop) c.stop(); },
+  // iOS plays quietly (call mode) while the mic is open, so close it while prompts play
+  mute(){ if (this.stream && !this.active){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; } },
   release(){ this.abort(); if (this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; } },
   hasSR(){ return !!(window.SpeechRecognition || window.webkitSpeechRecognition); },
   async record(seconds, onTick, ctrl={}){
@@ -1069,7 +1072,7 @@ function taskListenRepeat(set){
   const setS=(big,lab,on)=>{ status.innerHTML=''; status.classList.toggle('on',!!on); status.append(el('div',{}, el('div',{class:'big'}, on?el('span',{class:'dot'}):null, on?' ':'', big), el('div',{class:'lab'}, lab))); };
   start.onclick=async ()=>{ const my=VIEW_SEQ; start.disabled=true; if (!(await REC.ensure())){ start.disabled=false; return; } SPEAK_ACTIVE=true;
     for (let i=0;i<set.sentences.length;i++){ if (my!==VIEW_SEQ) return; const s=set.sentences[i]; setS(`문장 ${i+1} / ${set.sentences.length}`, '듣는 중');
-      await TTS.speak(s, i%2?'M':'W'); if (my!==VIEW_SEQ) return; await wait(250); if (my!==VIEW_SEQ) return; beep(); const ctrl={}; stopB.disabled=false; stopB.onclick=()=>ctrl.stop&&ctrl.stop();
+      REC.mute(); await TTS.speak(s, i%2?'M':'W'); if (my!==VIEW_SEQ) return; await wait(250); if (my!==VIEW_SEQ) return; beep(); const ctrl={}; stopB.disabled=false; stopB.onclick=()=>ctrl.stop&&ctrl.stop();
       const nw=s.split(' ').length; const secs = nw<=8? 8 : nw<=14? 10 : 12;
       const r=await REC.record(secs, left=>setS(`${left}초`, `문장 ${i+1} 따라 말하기`, true), ctrl); if (my!==VIEW_SEQ) return; stopB.disabled=true; results.push({s, ...r}); await wait(300); }
     if (my!==VIEW_SEQ) return; SPEAK_ACTIVE=false; done=true; REC.release&&REC.release(); setS('완료', '빨강 취소선은 빠뜨린 단어, 배경 있는 것은 관사·전치사, 기울임은 덧붙인 말'); review.classList.remove('hidden');
@@ -1089,9 +1092,9 @@ function taskInterview(set){
   const qshow=el('div',{class:'passage sans hidden'}); const showQ=el('input',{type:'checkbox',onchange:()=>qshow.classList.toggle('hidden',!showQ.checked||!qshow.textContent||done)}); node.append(el('div',{class:'row task'}, start, stopB, el('label',{class:'small',style:'display:flex;gap:6px;align-items:center'}, showQ, '질문 텍스트 보기 (연습용, 실제 시험은 음성만)')), status, qshow);
   const review=el('div',{class:'task hidden'}); node.append(review); const results=[]; let done=false;
   const setS=(big,lab,on)=>{ status.innerHTML=''; status.classList.toggle('on',!!on); status.append(el('div',{}, el('div',{class:'big'}, on?el('span',{class:'dot'}):null, on?' ':'', big), el('div',{class:'lab'}, lab))); };
-  start.onclick=async ()=>{ const my=VIEW_SEQ; start.disabled=true; if (!(await REC.ensure())){ start.disabled=false; return; } SPEAK_ACTIVE=true; setS('면접 시작','소개 듣는 중'); await TTS.speak(set.intro,'W'); await wait(300);
+  start.onclick=async ()=>{ const my=VIEW_SEQ; start.disabled=true; if (!(await REC.ensure())){ start.disabled=false; return; } SPEAK_ACTIVE=true; setS('면접 시작','소개 듣는 중'); REC.mute(); await TTS.speak(set.intro,'W'); await wait(300);
     for (let i=0;i<set.questions.length;i++){ if (my!==VIEW_SEQ) return; const q=set.questions[i]; setS(`질문 ${i+1} / ${set.questions.length}`, '질문 듣는 중'); qshow.classList.toggle('hidden', !showQ.checked); qshow.textContent=q;
-      await TTS.speak(q,'W'); if (my!==VIEW_SEQ) return; await wait(200); if (my!==VIEW_SEQ) return; beep(); const ctrl={}; stopB.disabled=false; stopB.onclick=()=>ctrl.stop&&ctrl.stop();
+      REC.mute(); await TTS.speak(q,'W'); if (my!==VIEW_SEQ) return; await wait(200); if (my!==VIEW_SEQ) return; beep(); const ctrl={}; stopB.disabled=false; stopB.onclick=()=>ctrl.stop&&ctrl.stop();
       const r=await REC.record(45, left=>setS(`${left}초`, `질문 ${i+1} 답변 중`, true), ctrl); if (my!==VIEW_SEQ) return; stopB.disabled=true; results.push({q,...r}); await wait(300); }
     if (my!==VIEW_SEQ) return; SPEAK_ACTIVE=false; done=true; REC.release&&REC.release(); qshow.classList.add('hidden'); setS('종료','녹음 다시 듣고 질문별 자기 평가'); review.classList.remove('hidden');
     results.forEach((r,i)=>{ const row=el('div',{class:'q'}); row.append(el('div',{class:'stem'}, `Q${i+1}. ${r.q}`));
@@ -1627,7 +1630,15 @@ const GROUP_HINT = {아침:'출근 전 25분. 소리 내서', 점심:'점심시�
 function secOf(act){ return (ACT[act]||{}).sec||'all'; }
 function ringSvg(p){ const r=27, c=2*Math.PI*r; return `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg>`; }
 const HEART=()=>{ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('aria-hidden','true'); s.innerHTML='<path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.4 2.5.8-1.3 2.3-2.5 4.4-2.5 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/>'; return s; };
-function greeting(){ const h=new Date().getHours(); return h<11? '좋은 아침' : h<17? '오후도 화이팅' : '오늘 마무리할 시간'; }
+function greeting(){ const h=new Date().getHours(); return h<5? 'Still up, Robin?' : h<12? 'Good morning, Robin.' : h<18? 'Good afternoon, Robin.' : 'Good evening, Robin.'; }
+const CHEERS=['Small steps, every single day.','Your future self is already proud of you.','One more session closer to 110.','Progress over perfection.','Show up today. That is the whole trick.','You have done hard things before. This is one more.','Every word you learn is yours for good.','Consistency beats intensity.','Speak up, Robin. Your voice is ready.','Ten focused minutes still count.','Today\'s effort is tomorrow\'s band score.','Mistakes are just data. Keep going.','Breathe, focus, start the first block.','You are closer than you think.','Win the morning, win the day.','The 110 version of you studies today.','Discipline is choosing what you want most.','Keep the hearts coming.','Clear voice, calm mind, full answers.','You are building this one day at a time.'];
+function cheer(d=today()){ const ne=nextExam(d), stk=DAYS.streak(), h=new Date().getHours(); const studied=DAYS.active(d);
+  if (ne && ne.days===0) return 'Test day. You have trained for this. Go get it.';
+  if (ne && ne.days===1) return 'Tomorrow is the day. Light review, early night, full confidence.';
+  if (studied && h>=18) return stk>1? `Day ${stk} in a row. Rest well, you earned it.` : 'You showed up today. That matters more than you think.';
+  if (stk>=3 && hashStr(d)%2) return `Day ${stk} in a row. Keep the chain alive.`;
+  if (ne && ne.days<=7) return `${ne.days} days to go. Trust the reps you have put in.`;
+  return CHEERS[hashStr(d)%CHEERS.length]; }
 function markOptional(blocks, d=today()){ if (!dayKind(d).weekend && settings.minimumDate!==d){ let acc=0; blocks.forEach(b=>{ acc+=(+b.minutes||0); b.optional = acc>75 && b.activity!=='template'; }); } return blocks; }
 function updateBadge(){ try{ if (!navigator.setAppBadge) return; const {blocks}=blocksFor(); const dd=DAYS.get(); const left=markOptional(blocks).filter(b=>!b.optional && !dd.blocks[b.key]).length; (left? navigator.setAppBadge(left) : navigator.clearAppBadge()).catch(()=>{}); }catch(e){} }
 function nextBlockOf(blocks, dd){ return blocks.find(b=>!dd.blocks[b.key]); }
@@ -1641,8 +1652,9 @@ VIEWS.today = ()=>{
   const k=dayKind(d); const locked=fired.some(r=>r.lock); const nb=nextBlockOf(core, dd)||nextBlockOf(blocks, dd); const ne=nextExam(d);
   root.append(el('section',{class:'sec hello'},
     el('div',{class:'phase'}, ph? ph.name : '시나리오 기간 종료'),
-    el('h1',{}, `${greeting()}, 로빈`),
-    el('div',{class:'sub2'}, ne? `${ne.date===settings.test1?'1차':ne.date===settings.test2?'2차':'다음'} 시험까지 ${ne.days}일` : '')));
+    el('h1',{}, greeting()),
+    el('div',{class:'cheer'}, cheer(d)),
+    el('div',{class:'sub2'}, ne? (ne.days===0? 'Test day' : `${ne.days} ${ne.days===1?'day':'days'} until your ${ne.date===settings.test1?'first':ne.date===settings.test2?'second':'next'} test`) : '')));
   if (locked) root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'},
     el('div',{class:'gh'}, el('div',{class:'n'}, '시험 접수 확인')), el('div',{class:'small'}, `1차 ${settings.test1.slice(5).replace('-','/')}, 2차 ${settings.test2.slice(5).replace('-','/')} 접수됐는지 ETS에서 확인. 확인해야 오늘 학습이 열려.`),
     el('div',{class:'row',style:'margin-top:12px'}, el('a',{class:'btn sm',href:'https://www.ets.org/toefl/test-takers/ibt/register.html',target:'_blank',rel:'noopener'}, 'ETS 열기'), el('button',{class:'btn sec sm',type:'button',onclick:()=>{ settings.registered=true; saveSettings(); toast('좋아. 이제 시작'); go('today'); }}, '접수 확인함')))));
