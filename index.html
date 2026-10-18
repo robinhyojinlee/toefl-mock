@@ -279,7 +279,11 @@ details summary{cursor:pointer;color:var(--fg-subtle);font-size:13px;padding:6px
 @media (min-width:640px){.toast{bottom:24px}}
 
 /* today: daily flow */
-.hello{display:grid;gap:4px}
+.hello{display:grid;gap:4px;position:relative;padding-bottom:64px;overflow:hidden}
+.hello>*{position:relative;z-index:1}
+.hello .sfbg{position:absolute!important;z-index:0;left:-16px;right:-16px;bottom:0;height:120px;color:var(--fg-highlight);pointer-events:none}
+.hello .sfbg svg{width:100%;height:100%;display:block}
+.hello .sfcap{position:absolute!important;right:4px;bottom:6px;font-size:11px;letter-spacing:.4px;color:var(--fg-subtle);opacity:.8}
 .hello .phase{font-size:13px;line-height:18px;color:var(--fg-highlight);font-weight:600}
 .hello h1{font-size:24px;line-height:32px;font-weight:700;letter-spacing:-0.48px}
 .hello .sub2{color:var(--fg-subtle);font-size:14px;line-height:22px}
@@ -500,46 +504,46 @@ body.has-cta{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 @keyframes stamp{0%{transform:scale(.4) rotate(-20deg);opacity:0}60%{transform:scale(1.2) rotate(6deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion:reduce){.wd.heart.today i{animation:none}}
 body.drilling .toast{top:calc(64px + env(safe-area-inset-top));bottom:auto}
-.exam{position:fixed;inset:0;z-index:60;background:#fff;color:#1b1b1b;font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column}
-.exam .xh{background:#22313f;color:#fff;display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top))}
-.exam .xh .logo{font-weight:700;font-size:16px;letter-spacing:.3px;white-space:nowrap}
-.exam .spacer{flex:1}
-.exam .xbtn{background:linear-gradient(#ffffff,#d7dde3);color:#22313f;border:1px solid #8d99a5;border-radius:18px;padding:7px 16px;font-weight:700;font-size:14px;cursor:pointer;min-height:34px}
-.exam .xbtn:disabled{opacity:.45;cursor:default}
-.exam .xnext{background:linear-gradient(#2f80c4,#1d5f99);color:#fff;border-color:#174e7e}
-.exam .xexit{background:transparent;color:#cfd8e1;border-color:#56677a}
-.exam .xs{background:#e8ecf0;border-bottom:1px solid #c5ccd3;display:flex;align-items:center;gap:12px;padding:7px 14px;font-size:13px;color:#22313f}
-.exam .xs .xsrc{color:#5b6b7b}
-.exam .xtw{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
-.exam .xt{font-weight:700;font-size:14px}
-.exam .xt.low{color:#c62828}
-.exam .xlink{background:none;border:1px solid #9aa6b1;border-radius:4px;font-size:12px;padding:2px 8px;color:#22313f;cursor:pointer}
-.exam .xb{flex:1;overflow:hidden;display:flex;min-height:0}
-.exam .xb.one{overflow:auto;display:block}
-.exam .xp{flex:1;overflow:auto;padding:22px 26px;border-right:1px solid #c5ccd3;line-height:1.75;font-size:16px}
-.exam .xp h3{font-size:17px;margin:0 0 10px}
-.exam .xp p{margin:0 0 12px}
-.exam .xq{flex:1;overflow:auto;padding:22px 26px;max-width:860px;margin:0 auto}
-.exam .xdir{font-weight:700;margin-bottom:14px;color:#22313f}
-.exam .xstem{font-size:16px;font-weight:700;margin-bottom:14px;line-height:1.6}
-.exam .xopts{display:grid;gap:4px}
-.exam .xopt{display:flex;gap:12px;align-items:flex-start;padding:10px 8px;border-radius:6px;cursor:pointer;font-size:16px;line-height:1.5}
-.exam .xopt:hover{background:#f1f4f7}
-.exam .xopt input{width:18px;height:18px;margin-top:3px;flex:none;accent-color:#1d5f99}
-.exam .xpara{font-size:17px;line-height:2.3}
-.exam .xw{white-space:nowrap}
-.exam .xblank{font-family:'Courier New',Courier,monospace;font-size:17px;letter-spacing:.45ch;border:0;padding:0;margin-left:1px;background:repeating-linear-gradient(90deg,#22313f 0 1ch,transparent 1ch 1.45ch) left bottom/100% 2px no-repeat;color:#1d5f99;outline:none}
-.exam .xblank:focus{background-color:#eef5fc}
-.exam .xwave,.exam .xpic{font-size:56px;text-align:center;margin:28px 0}
-.exam .xprog{height:6px;background:#dde3e8;border-radius:3px;overflow:hidden;max-width:420px;margin:0 auto 16px}
-.exam .xprog i{display:block;height:100%;width:0;background:#1d5f99;transition:width .3s}
-.exam .xrev{width:100%;border-collapse:collapse;font-size:14px}
-.exam .xrev td,.exam .xrev th{border-bottom:1px solid #dde3e8;padding:8px;text-align:left}
-.exam .xrev tr{cursor:pointer}
-.exam .xrev td.na{color:#c62828;font-weight:700}
-.exam .hidden{display:none}
+.xexam{position:fixed;inset:0;z-index:60;background:#fff;color:#1b1b1b;font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column}
+.xexam .xh{background:#22313f;color:#fff;display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top))}
+.xexam .xh .logo{font-weight:700;font-size:16px;letter-spacing:.3px;white-space:nowrap}
+.xexam .spacer{flex:1}
+.xexam .xbtn{background:linear-gradient(#ffffff,#d7dde3);color:#22313f;border:1px solid #8d99a5;border-radius:18px;padding:7px 16px;font-weight:700;font-size:14px;cursor:pointer;min-height:34px}
+.xexam .xbtn:disabled{opacity:.45;cursor:default}
+.xexam .xnext{background:linear-gradient(#2f80c4,#1d5f99);color:#fff;border-color:#174e7e}
+.xexam .xexit{background:transparent;color:#cfd8e1;border-color:#56677a}
+.xexam .xs{background:#e8ecf0;border-bottom:1px solid #c5ccd3;display:flex;align-items:center;gap:12px;padding:7px 14px;font-size:13px;color:#22313f}
+.xexam .xs .xsrc{color:#5b6b7b}
+.xexam .xtw{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.xexam .xt{font-weight:700;font-size:14px}
+.xexam .xt.low{color:#c62828}
+.xexam .xlink{background:none;border:1px solid #9aa6b1;border-radius:4px;font-size:12px;padding:2px 8px;color:#22313f;cursor:pointer}
+.xexam .xb{flex:1;overflow:hidden;display:flex;min-height:0}
+.xexam .xb.one{overflow:auto;display:block}
+.xexam .xp{flex:1;overflow:auto;padding:22px 26px;border-right:1px solid #c5ccd3;line-height:1.75;font-size:16px}
+.xexam .xp h3{font-size:17px;margin:0 0 10px}
+.xexam .xp p{margin:0 0 12px}
+.xexam .xq{flex:1;overflow:auto;padding:22px 26px;max-width:860px;margin:0 auto}
+.xexam .xdir{font-weight:700;margin-bottom:14px;color:#22313f}
+.xexam .xstem{font-size:16px;font-weight:700;margin-bottom:14px;line-height:1.6}
+.xexam .xopts{display:grid;gap:4px}
+.xexam .xopt{display:flex;gap:12px;align-items:flex-start;padding:10px 8px;border-radius:6px;cursor:pointer;font-size:16px;line-height:1.5}
+.xexam .xopt:hover{background:#f1f4f7}
+.xexam .xopt input{width:18px;height:18px;margin-top:3px;flex:none;accent-color:#1d5f99}
+.xexam .xpara{font-size:17px;line-height:2.3}
+.xexam .xw{white-space:nowrap}
+.xexam .xblank{font-family:'Courier New',Courier,monospace;font-size:17px;letter-spacing:.45ch;border:0;padding:0;margin-left:1px;background:repeating-linear-gradient(90deg,#22313f 0 1ch,transparent 1ch 1.45ch) left bottom/100% 2px no-repeat;color:#1d5f99;outline:none}
+.xexam .xblank:focus{background-color:#eef5fc}
+.xexam .xwave,.xexam .xpic{font-size:56px;text-align:center;margin:28px 0}
+.xexam .xprog{height:6px;background:#dde3e8;border-radius:3px;overflow:hidden;max-width:420px;margin:0 auto 16px}
+.xexam .xprog i{display:block;height:100%;width:0;background:#1d5f99;transition:width .3s}
+.xexam .xrev{width:100%;border-collapse:collapse;font-size:14px}
+.xexam .xrev td,.xexam .xrev th{border-bottom:1px solid #dde3e8;padding:8px;text-align:left}
+.xexam .xrev tr{cursor:pointer}
+.xexam .xrev td.na{color:#c62828;font-weight:700}
+.xexam .hidden{display:none}
 body.examing{overflow:hidden}
-@media (max-width:760px){ .exam .xb{flex-direction:column;overflow:auto} .exam .xp{flex:none;border-right:0;border-bottom:1px solid #c5ccd3;padding:16px} .exam .xq{padding:16px} .exam .xbtn{padding:6px 12px;font-size:13px} .exam .xh .logo{font-size:14px} .exam .xs .xsrc{display:none} }
+@media (max-width:760px){ .xexam .xb{flex-direction:column;overflow:auto} .xexam .xp{flex:none;border-right:0;border-bottom:1px solid #c5ccd3;padding:16px} .xexam .xq{padding:16px} .xexam .xbtn{padding:6px 12px;font-size:13px} .xexam .xh .logo{font-size:14px} .xexam .xs .xsrc{display:none} }
 </style>
 </head>
 <body>
@@ -752,7 +756,7 @@ async function prefetchAudio(keys){ if (PREFETCHING || !('caches' in window) || 
   await Promise.all([worker(),worker(),worker(),worker()]);
   const all=await c.keys(); if (all.length>900){ for (const r of all.slice(0, all.length-900)) await c.delete(r); } }catch(e){} PREFETCHING=false; }
 function prefetchToday(){ try{ const {blocks}=blocksFor(); const keys=new Set(); blocks.forEach(b=>{ const A=ACT[b.activity]; if (!A || !A.bank || !['listening','speaking'].includes(A.sec)) return; const n=+b.count||1; const sets=b.activity==='interview'? Math.ceil(n/4) : b.activity==='listen_repeat'? Math.ceil(n/7) : n; pickItems(b.activity, sets+2).forEach(it=>itemAudioKeys(it).forEach(k=>keys.add(k))); }); if (keys.size) setTimeout(()=>prefetchAudio(keys), 1500); }catch(e){} }
-const BUILD = '2026-10-19 00:08';
+const BUILD = '2026-10-19 00:43';
 const OFF_VER = 'def47259ee';
 
 /* ---------- utils ---------- */
@@ -1636,6 +1640,8 @@ function newWordsToday(){
   const left=V.stats().fresh.length; const d2=diffDays(today(), settings.test2);
   const cap = diffDays(today(), settings.test1)>=0? 15 : 25; return Math.min(cap, Math.ceil(left/Math.max(d2-3,1)));
 }
+function rehearsalFor(label){ const sec= label==='D-5'? 'reading' : label==='D-4'? 'listening' : null; if (!sec) return null; const ER=store.get('exam_results',{}); const srcs=examSources().filter(g=>g.sec===sec && /^ETS/.test(g.source)); const g=srcs.find(g=>!ER[g.source+'|'+sec]) || null;
+  return g? {sec, key:g.source+'|'+sec, items:g.items, title:g.source} : {sec, key:'fresh|'+sec+'|'+today(), title:`새 ${EXAM_SECS[sec].name} 세트`}; }
 function examDayNote(d=today()){
   const ew=PLAN.exam_week||[];
   for (const t of [settings.test1, settings.test2, settings.test3].filter(Boolean)){ const n=diffDays(d,t); if (n<0||n>7) continue; const label=n===0?'D-0':`D-${n}`; const e=ew.find(x=>x.day===label); if (e) return {label, tasks:e.tasks||[]}; }
@@ -1673,6 +1679,12 @@ const GROUP_HINT = {아침:'출근 전 25분. 소리 내서', 점심:'점심시�
 function secOf(act){ return (ACT[act]||{}).sec||'all'; }
 function ringSvg(p){ const r=27, c=2*Math.PI*r; return `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg>`; }
 const HEART=()=>{ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('aria-hidden','true'); s.innerHTML='<path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.4 2.5.8-1.3 2.3-2.5 4.4-2.5 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/>'; return s; };
+const SF_SVG=`<svg viewBox="0 0 720 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><linearGradient id="sfsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity="0"/><stop offset="1" stop-color="currentColor" stop-opacity=".10"/></linearGradient></defs>
+<rect x="0" y="0" width="720" height="150" fill="url(#sfsky)"/>
+<g fill="currentColor" opacity=".18"><path d="M470 150V96h10v-8h8v62zM492 150V70l6-30 6 30v80zM510 150V84h14v66zM528 150V92h9V78h7v72zM548 150v-50h12v50zM564 150V88h6v-6h6v68zM580 150V98h16v52zM600 150v-40h10v40zM614 150V90h12v60zM630 150v-34h20v34zM654 150v-46h8v46zM666 150v-28h54v28z"/><path d="M493 70l5-32 5 32z"/></g>
+<g fill="none" stroke="currentColor" stroke-linecap="round" opacity=".30"><path d="M0 122 L470 122" stroke-width="3"/><path d="M96 122V30M104 122V30M326 122V30M334 122V30" stroke-width="5"/><path d="M92 46h16M92 70h16M92 96h16M322 46h16M322 70h16M322 96h16" stroke-width="3"/>
+<path d="M-10 118 Q50 40 100 32 Q215 118 330 32 Q390 40 470 118" stroke-width="2"/><g stroke-width="1" opacity=".7"><path d="M130 52V122M160 76V122M190 96V122M215 108V122M240 96V122M270 76V122M300 52V122M30 84V122M60 58V122M370 58V122M400 84V122M430 104V122"/></g></g>
+<path d="M0 132 Q180 124 360 132 T720 130 V150 H0z" fill="currentColor" opacity=".08"/></svg>`;
 function greeting(){ const h=new Date().getHours(); return h<5? 'Still up, Robin?' : h<12? 'Good morning, Robin.' : h<18? 'Good afternoon, Robin.' : 'Good evening, Robin.'; }
 const CHEERS=['Small steps, every single day.','Your future self is already proud of you.','One more session closer to 110.','Progress over perfection.','Show up today. That is the whole trick.','You have done hard things before. This is one more.','Every word you learn is yours for good.','Consistency beats intensity.','Speak up, Robin. Your voice is ready.','Ten focused minutes still count.','Today\'s effort is tomorrow\'s band score.','Mistakes are just data. Keep going.','Breathe, focus, start the first block.','You are closer than you think.','Win the morning, win the day.','The 110 version of you studies today.','Discipline is choosing what you want most.','Keep the hearts coming.','Clear voice, calm mind, full answers.','You are building this one day at a time.'];
 function cheer(d=today()){ const ne=nextExam(d), stk=DAYS.streak(), h=new Date().getHours(); const studied=DAYS.active(d);
@@ -1693,11 +1705,12 @@ VIEWS.today = ()=>{
   const core=blocks.filter(b=>!b.optional); const done=core.filter(b=>dd.blocks[b.key]).length; const totalMin=core.reduce((a,b)=>a+(+b.minutes||0),0);
   const leftMin=core.filter(b=>!dd.blocks[b.key]).reduce((a,b)=>a+(+b.minutes||0),0);
   const k=dayKind(d); const locked=fired.some(r=>r.lock); const nb=nextBlockOf(core, dd)||nextBlockOf(blocks, dd); const ne=nextExam(d);
-  root.append(el('section',{class:'sec hello'},
+  const helloSec=el('section',{class:'sec hello'},
     el('div',{class:'phase'}, ph? ph.name : '시나리오 기간 종료'),
     el('h1',{}, greeting()),
     el('div',{class:'cheer'}, cheer(d)),
-    el('div',{class:'sub2'}, ne? (ne.days===0? 'Test day' : `${ne.days} ${ne.days===1?'day':'days'} until your ${ne.date===settings.test1?'first':ne.date===settings.test2?'second':'next'} test`) : '')));
+    el('div',{class:'sub2'}, ne? (ne.days===0? 'Test day' : `${ne.days} ${ne.days===1?'day':'days'} until your ${ne.date===settings.test1?'first':ne.date===settings.test2?'second':'next'} test`) : ''));
+  { const bg=el('div',{class:'sfbg'}); bg.innerHTML=SF_SVG; helloSec.prepend(bg); helloSec.append(el('div',{class:'sfcap'}, 'San Francisco is waiting')); } root.append(helloSec);
   if (locked) root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'},
     el('div',{class:'gh'}, el('div',{class:'n'}, '시험 접수 확인')), el('div',{class:'small'}, `1차 ${settings.test1.slice(5).replace('-','/')}, 2차 ${settings.test2.slice(5).replace('-','/')} 접수됐는지 ETS에서 확인. 확인해야 오늘 학습이 열려.`),
     el('div',{class:'row',style:'margin-top:12px'}, el('a',{class:'btn sm',href:'https://www.ets.org/toefl/test-takers/ibt/register.html',target:'_blank',rel:'noopener'}, 'ETS 열기'), el('button',{class:'btn sec sm',type:'button',onclick:()=>{ settings.registered=true; saveSettings(); toast('좋아. 이제 시작'); go('today'); }}, '접수 확인함')))));
@@ -1719,7 +1732,7 @@ VIEWS.today = ()=>{
     el('div',{class:'pbar',style:'margin-top:10px'}, el('i',{style:`width:${Math.min(100,Math.round(sum/21*100))}%`})),
     el('div',{class:'small',style:'margin-top:6px'}, eb.total!=null? `네 영역 합 ${sum.toFixed(1)} / 21.0` : known? `${known}개 영역 산출. 나머지는 전 유형을 한 번씩 풀면 나옴` : '기준 모의고사와 드릴을 풀면 영역별로 산출'),
     el('div',{class:'mini'}, ...secs.map(s=>el('div',{}, el('b',{style: eb[s].band==null? 'color:var(--fg-disabled)' : eb[s].band>=TARGETS[s]? 'color:var(--fg-success)' : ''}, eb[s].band==null? '-' : eb[s].band.toFixed(1)), el('span',{}, SEC_NAME[s].slice(0,1)+' · 목표 '+TARGETS[s])))))));
-  if (examNote) root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'}, el('div',{class:'gh'}, el('div',{class:'n'}, `${examNote.label} 루틴`)), ...examNote.tasks.map(t=>el('div',{class:'small',style:'padding:6px 0;color:var(--fg-base)'}, t)))));
+  if (examNote) root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'}, el('div',{class:'gh'}, el('div',{class:'n'}, `${examNote.label} 루틴`)), ...examNote.tasks.map(t=>el('div',{class:'small',style:'padding:6px 0;color:var(--fg-base)'}, t)), (()=>{ const r=rehearsalFor(examNote.label); if (!r) return null; const er=store.get('exam_results',{})[r.key]; return el('div',{class:'row',style:'margin-top:8px'}, er && er.date===today()? el('span',{class:'badge ok'}, `리허설 완료 ${er.C}/${er.T} · 첫 10문항 ${er.first10}/10`) : el('button',{class:'btn',type:'button',onclick:()=>startExam(r)}, `${EXAM_SECS[r.sec].name} 실전 리허설 시작 · ${r.title}`)); })())));
   // today's study as group cards
   const isMin=settings.minimumDate===d;
   const minT=el('button',{class:'btn ghost sm',type:'button','aria-pressed':String(isMin),onclick:()=>{ settings.minimumDate= isMin? '' : d; saveSettings(); go('today'); }}, isMin? '정규로 돌아가기' : '바쁜 날 15분');
@@ -1991,8 +2004,8 @@ VIEWS.practice = ()=>{
   }
   { const sec=el('section',{class:'sec'}); sec.append(sectionHead('실전 시험', el('span',{class:'small'}, 'TOEFL 시험 화면 · 끝나고 채점·해설'))); const list=el('div',{class:'list'}); const RS=store.get('exam_resume',{});
     const row=(t,d,on,k)=>el('button',{class:'item',type:'button',onclick:on}, el('div',{class:'body'}, el('div',{class:'t'}, t), el('div',{class:'d'}, (k && RS[k]? `이어서 · 남은 시간 ${fmt(RS[k].left)} · ` : '')+d)), svg(ICON.chev,'chev'));
-    ['reading','listening'].forEach(sec_=>{ const k='fresh|'+sec_+'|'+today(); list.append(row(`새 ${EXAM_SECS[sec_].name} 세트`, sec_==='reading'? '빈칸 2문단 · 일상 5 · 학술 3 · 약 50문항 · 27분' : '응답 18 · 대화 5 · 공지 4 · 강의 3 · 약 48문항', ()=>{ const r=store.get('exam_resume',{})[k]; startExam({sec:sec_, key:k, items: r? r.ids.split(',').map(id=>({act:EXAM_SECS[sec_].acts.find(a=>findItem(a,id)), id})) : null, title:`새 ${EXAM_SECS[sec_].name} 세트`}); }, k)); });
-    examSources().forEach(g=>{ const k=g.source+'|'+g.sec; list.append(row(`${g.source} · ${EXAM_SECS[g.sec].name}`, `${examCount(g.items)}문항 · ${LOG.all().some(a=>a.meta&&a.meta.exam===k)? '푼 적 있음' : '처음'}`, ()=>startExam({sec:g.sec, key:k, items:g.items, title:g.source}), k)); });
+    ['reading','listening'].forEach(sec_=>{ const k='fresh|'+sec_+'|'+today(); list.append(row(`새 ${EXAM_SECS[sec_].name} 세트`, sec_==='reading'? '빈칸 3문단 · 일상 4 · 학술 2 · 약 50문항' : '응답 18 · 대화 5 · 공지 4 · 강의 3 · 약 48문항', ()=>startExam({sec:sec_, key:k, title:`새 ${EXAM_SECS[sec_].name} 세트`}), k)); });
+    examSources().forEach(g=>{ const k=g.source+'|'+g.sec; const er=store.get('exam_results',{})[k]; list.append(row(`${g.source} · ${EXAM_SECS[g.sec].name}`, `${examCount(g.items)}문항 · ${er? `최근 ${er.C}/${er.T} · 밴드 ${er.band} · ${er.date.slice(5).replace('-','/')}` : '처음'}`, ()=>startExam({sec:g.sec, key:k, items:g.items, title:g.source}), k)); });
     sec.append(list); root.append(sec); }
   { const sec=el('section',{class:'sec'}); sec.append(sectionHead('ETS 공식 문제', el('span',{class:'small'}, '공식 모의고사 2회분 · 잠금')));
     const offAct={complete_words:'complete_the_words',daily_life:'daily_life',academic_reading:'academic',choose_response:'choose_response',conversation:'conversations',announcement:'announcements',academic_talk:'talks',build_sentence:'build_sentence',email:'emails',discussion:'academic_discussion',listen_repeat:'listen_repeat',interview:'interviews'};
@@ -2012,25 +2025,26 @@ VIEWS.practice = ()=>{
 
 /* ---------- exam mode: TOEFL-style test screen ---------- */
 const EXAM_SECS={reading:{name:'Reading', acts:['complete_words','daily_life','academic_reading']}, listening:{name:'Listening', acts:['choose_response','conversation','announcement','academic_talk']}};
-const EXAM_FORM={reading:[['complete_words',2],['daily_life',5],['academic_reading',3]], listening:[['choose_response',18],['conversation',5],['announcement',4],['academic_talk',3]]};
+const EXAM_FORM={reading:[['complete_words',3],['daily_life',4],['academic_reading',2]], listening:[['choose_response',18],['conversation',5],['announcement',4],['academic_talk',3]]};
 function examSources(){ const out={}; Object.entries(EXAM_SECS).forEach(([sec,S])=>S.acts.forEach(act=>ACT[act].bank().forEach(x=>{ if (!x.source) return; const k=x.source+'|'+sec; (out[k]=out[k]||{source:x.source, sec, items:[]}).items.push({act, id:x.id}); }))); return Object.values(out).sort((a,b)=>a.source.localeCompare(b.source)||(a.sec==='reading'?-1:1)); }
 function examCount(items){ let n=0; items.forEach(({act,id})=>{ const x=findItem(act,id); if (!x) return; n+= act==='complete_words'? (x.text.match(/\{/g)||[]).length : act==='choose_response'? 1 : (x.questions||[]).length; }); return n; }
 function examFresh(sec){ return EXAM_FORM[sec].flatMap(([act,n])=>pickItems(act,n).map(x=>({act, id:x.id}))); }
 function examTurns(act,x){ return act==='conversation'? x.turns : [{speaker:x.speaker||'W', text:x.text}]; }
-function startExam(o){ const items=o.items||examFresh(o.sec); go('exam',{...o, items, key:o.key||('fresh|'+o.sec+'|'+today())}); }
+function startExam(o){ const key=o.key||('fresh|'+o.sec+'|'+today()); const sv=store.get('exam_resume',{})[key]; const items=o.items||(sv&&sv.items)||examFresh(o.sec); go('exam',{...o, items, key}); }
 VIEWS.exam = (o)=>{
   document.body.classList.add('examing'); const S=EXAM_SECS[o.sec];
   // screens
-  const screens=[]; let qn=0;
+  const IK=(act,id)=>act+':'+id; const screens=[]; let qn=0;
   o.items.forEach(({act,id})=>{ const x=findItem(act,id); if (!x) return;
     if (act==='complete_words'){ const n=(x.text.match(/\{/g)||[]).length; screens.push({kind:'ctw', act, x, q0:qn+1, n}); qn+=n; }
     else if (act==='choose_response'){ qn++; screens.push({kind:'cr', act, x, q0:qn, n:1}); }
     else if (S.name==='Listening'){ screens.push({kind:'audio', act, x, n:0}); x.questions.forEach((q,qi)=>{ qn++; screens.push({kind:'lq', act, x, qi, q0:qn, n:1}); }); }
     else x.questions.forEach((q,qi)=>{ qn++; screens.push({kind:'mcq', act, x, qi, q0:qn, n:1}); }); });
   const total=qn; const secs=o.seconds || Math.max(300, Math.round(total*(S.name==='Reading'? 33 : 36)));
-  const R=store.get('exam_resume',{}); const saved=R[o.key]; const st=saved && saved.ids===o.items.map(i=>i.id).join(',')? saved : {ids:o.items.map(i=>i.id).join(','), idx:0, left:secs, ans:{}, played:{}};
-  const save=()=>{ const R2=store.get('exam_resume',{}); R2[o.key]=st; store.set('exam_resume',R2); };
-  const wrap=el('div',{class:'exam'}); document.body.append(wrap); window.CUR_DRILL={t0:Date.now(), finished:false, touched:false, resumable:true};
+  const R=store.get('exam_resume',{}); const saved=R[o.key]; const fp=o.items.map(i=>IK(i.act,i.id)).join(','); const st=saved && saved.ids===fp? saved : {ids:fp, items:o.items, idx:0, left:secs, ans:{}, played:{}};
+  if (saved && st===saved && st.savedAt && /^(fresh|ETS)/.test(o.key)){ st.left=Math.max(0, st.left-Math.round((Date.now()-st.savedAt)/1000)); }
+  const save=()=>{ if (done_) return; st.savedAt=Date.now(); const R2=store.get('exam_resume',{}); R2[o.key]=st; store.set('exam_resume',R2); };
+  let done_=false; const wrap=el('div',{class:'xexam'}); document.body.append(wrap); window.CUR_DRILL={t0:Date.now(), finished:false, touched:false, resumable:true};
   const timeEl=el('span',{class:'xt'}), hideB=el('button',{class:'xlink',type:'button'}, 'Hide Time'); let hidden=false; hideB.onclick=()=>{ hidden=!hidden; timeEl.style.visibility=hidden?'hidden':'visible'; hideB.textContent=hidden?'Show Time':'Hide Time'; };
   const cnt=el('span',{class:'xc'});
   const backB=el('button',{class:'xbtn',type:'button'}, 'Back'), nextB=el('button',{class:'xbtn xnext',type:'button'}, 'Next'), revB=el('button',{class:'xbtn',type:'button'}, 'Review'), exitB=el('button',{class:'xbtn xexit',type:'button'}, 'Exit');
@@ -2038,55 +2052,60 @@ VIEWS.exam = (o)=>{
     el('div',{class:'xs'}, el('b',{}, S.name), el('span',{class:'xsrc'}, o.title||''), el('span',{class:'spacer'}), cnt, el('span',{class:'xtw'}, timeEl, hideB)));
   const body=el('div',{class:'xb'}); wrap.append(body);
   let tick=null; const stopT=()=>{ clearInterval(tick); tick=null; };
-  const startT=()=>{ stopT(); const end=Date.now()+st.left*1000; tick=setInterval(()=>{ st.left=Math.max(0, Math.round((end-Date.now())/1000)); timeEl.textContent=fmtH(st.left); timeEl.classList.toggle('low', st.left<=300); if (st.left<=0){ stopT(); toast('Time is up'); finish(); } else if (st.left%5===0) save(); },500); };
+  const startT=()=>{ stopT(); const end=Date.now()+st.left*1000; tick=setInterval(()=>{ st.left=Math.max(0, Math.ceil((end-Date.now())/1000)); timeEl.textContent=fmtH(st.left); timeEl.classList.toggle('low', st.left<=300); if (st.left<=0){ stopT(); toast('Time is up'); finish(); } else if (st.left%5===0) save(); },500); };
   const fmtH=s=>`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-  const answered=sc=>{ if (sc.kind==='ctw'){ return [...Array(sc.n).keys()].every(k=>(st.ans[sc.x.id+'|b'+k]||'').trim()); } if (sc.kind==='audio') return true; return st.ans[sc.x.id+'|'+(sc.qi||0)]!=null; };
-  const optsNode=(sc, q)=>{ const key=sc.x.id+'|'+(sc.qi||0); const box=el('div',{class:'xopts',role:'radiogroup'});
+  const answered=sc=>{ if (sc.kind==='ctw'){ return [...Array(sc.n).keys()].every(k=>(st.ans[IK(sc.act,sc.x.id)+'|b'+k]||'').trim()); } if (sc.kind==='audio') return true; return st.ans[IK(sc.act,sc.x.id)+'|'+(sc.qi||0)]!=null; };
+  const optsNode=(sc, q)=>{ const key=IK(sc.act,sc.x.id)+'|'+(sc.qi||0); const box=el('div',{class:'xopts',role:'radiogroup'});
     q.options.forEach((t,i)=>{ const inp=el('input',{type:'radio',name:'xq',value:i}); if (st.ans[key]===i) inp.checked=true; inp.onchange=()=>{ st.ans[key]=i; DAYS.touch(); save(); }; box.append(el('label',{class:'xopt'}, inp, el('span',{}, t))); }); return box; };
   const show=()=>{ TTS.stop(); const sc=screens[st.idx]; if (!sc){ finish(); return; } body.innerHTML=''; body.className='xb'; save();
     cnt.textContent= sc.kind==='audio'? 'Listen' : sc.n>1? `Questions ${sc.q0}-${sc.q0+sc.n-1} of ${total}` : `Question ${sc.q0} of ${total}`;
     backB.disabled= st.idx===0; nextB.disabled=false;
     if (sc.kind==='ctw'){ body.classList.add('one'); const p=el('div',{class:'xq'}); p.append(el('div',{class:'xdir'}, 'Fill in the missing letters in the paragraph.'));
       const para=el('div',{class:'xpara'}); const re=/([A-Za-z'-]+)\{([A-Za-z'-]+)\}/g; let last=0, m, k=0; const t=sc.x.text;
-      while ((m=re.exec(t))){ para.append(t.slice(last, m.index)); const kk=k; const len=m[2].length; const inp=el('input',{class:'xblank',type:'text',autocomplete:'off',autocapitalize:'off',autocorrect:'off',spellcheck:'false',maxlength:len,'aria-label':`Question ${sc.q0+kk}`,style:`width:${len*1.45+0.4}ch`}); inp.value=st.ans[sc.x.id+'|b'+kk]||''; inp.oninput=()=>{ st.ans[sc.x.id+'|b'+kk]=inp.value; DAYS.touch(); if (inp.value.length>=len){ const nx=para.querySelectorAll('.xblank')[kk+1]; if (nx) nx.focus(); } save(); };
+      while ((m=re.exec(t))){ para.append(t.slice(last, m.index)); const kk=k; const len=m[2].length, pre=m[1], full=(m[1]+m[2]).toLowerCase(); const inp=el('input',{class:'xblank',type:'text',autocomplete:'off',autocapitalize:'off',autocorrect:'off',spellcheck:'false',maxlength:len+pre.length,'aria-label':`Question ${sc.q0+kk}`,style:`width:${len*1.45+0.4}ch`}); inp.value=st.ans[IK(sc.act,sc.x.id)+'|b'+kk]||''; inp.oninput=()=>{ st.ans[IK(sc.act,sc.x.id)+'|b'+kk]=inp.value; DAYS.touch(); const v_=inp.value.trim().toLowerCase(); const typingWhole=pre && v_.startsWith(pre.toLowerCase()) && v_.length<full.length && full.startsWith(v_); if (v_===full || (v_.length===len && !typingWhole)){ const nx=para.querySelectorAll('.xblank')[kk+1]; if (nx) nx.focus(); } save(); };
         para.append(el('span',{class:'xw'}, m[1], inp)); last=m.index+m[0].length; k++; }
       para.append(t.slice(last)); p.append(para); body.append(p); }
     else if (sc.kind==='mcq'){ const q=sc.x.questions[sc.qi]; const left=el('div',{class:'xp'}); if (sc.x.title) left.append(el('h3',{}, sc.x.title)); String(sc.x.text).split(/\n\s*\n/).forEach(par=>left.append(el('p',{}, par))); 
       const right=el('div',{class:'xq'}, el('div',{class:'xstem'}, q.stem), optsNode(sc,q)); body.append(left, right); }
     else if (sc.kind==='cr'){ body.classList.add('one'); const q={options:sc.x.options}; const right=el('div',{class:'xq'}); const note=el('div',{class:'xdir'}, 'Listen and choose the best response.'); const box=optsNode(sc,q); right.append(note, el('div',{class:'xwave'}, '🔊'), box);
-      const pk=sc.x.id; if (!st.played[pk]){ box.classList.add('hidden'); nextB.disabled=true; TTS.speak(sc.x.utterance, sc.x.speaker||'W').then(()=>{ st.played[pk]=1; save(); box.classList.remove('hidden'); nextB.disabled=false; }); } body.append(right); }
-    else if (sc.kind==='audio'){ body.classList.add('one'); const pk=sc.x.id; const bar=el('i'); const right=el('div',{class:'xq xaud'}, el('div',{class:'xdir'}, sc.act==='conversation'? 'Listen to a conversation.' : sc.act==='announcement'? 'Listen to an announcement.' : 'Listen to part of a talk in a class.'), el('div',{class:'xpic'}, sc.act==='conversation'? '👥' : sc.act==='announcement'? '📢' : '🎓'), el('div',{class:'xprog'}, bar)); body.append(right);
-      if (!st.played[pk]){ nextB.disabled=true; TTS.speakTurns(examTurns(sc.act,sc.x),(i,n)=>{ bar.style.width=Math.round((i+1)/n*100)+'%'; }).then(()=>{ if (screens[st.idx]!==sc) return; st.played[pk]=1; save(); bar.style.width='100%'; nextB.disabled=false; }); } else { bar.style.width='100%'; right.append(el('div',{class:'xdir'}, 'Audio already played. Select Next.')); } }
+      const pk=IK(sc.act,sc.x.id); if (!st.played[pk]){ box.classList.add('hidden'); nextB.disabled=true; const g=TTS.gen; TTS.speak(sc.x.utterance, sc.x.speaker||'W').then(()=>{ if (done_ || !wrap.isConnected || TTS.gen!==g || screens[st.idx]!==sc) return; st.played[pk]=1; save(); box.classList.remove('hidden'); nextB.disabled=false; }); } body.append(right); }
+    else if (sc.kind==='audio'){ body.classList.add('one'); const pk=IK(sc.act,sc.x.id); const bar=el('i'); const right=el('div',{class:'xq xaud'}, el('div',{class:'xdir'}, sc.act==='conversation'? 'Listen to a conversation.' : sc.act==='announcement'? 'Listen to an announcement.' : 'Listen to part of a talk in a class.'), el('div',{class:'xpic'}, sc.act==='conversation'? '👥' : sc.act==='announcement'? '📢' : '🎓'), el('div',{class:'xprog'}, bar)); body.append(right);
+      if (!st.played[pk]){ nextB.disabled=true; const g=TTS.gen; TTS.speakTurns(examTurns(sc.act,sc.x),(i,n)=>{ bar.style.width=Math.round((i+1)/n*100)+'%'; }).then(()=>{ if (done_ || !wrap.isConnected || TTS.gen!==g || screens[st.idx]!==sc) return; st.played[pk]=1; save(); bar.style.width='100%'; nextB.disabled=false; }); } else { bar.style.width='100%'; right.append(el('div',{class:'xdir'}, 'Audio already played. Select Next.')); } }
     else if (sc.kind==='lq'){ body.classList.add('one'); const q=sc.x.questions[sc.qi]; body.append(el('div',{class:'xq'}, el('div',{class:'xstem'}, q.stem), optsNode(sc,q))); }
     wrap.scrollTop=0; };
-  const review=()=>{ TTS.stop(); body.innerHTML=''; body.className='xb one'; cnt.textContent='Review'; const tb=el('table',{class:'xrev'}, el('thead',{}, el('tr',{}, el('th',{},'Question'), el('th',{},'Status'))));
-    const tbd=el('tbody'); screens.forEach((sc,i)=>{ if (sc.kind==='audio') return; for (let k=0;k<sc.n;k++){ const done= sc.kind==='ctw'? !!(st.ans[sc.x.id+'|b'+k]||'').trim() : answered(sc); tbd.append(el('tr',{onclick:()=>{ st.idx=i; show(); }}, el('td',{}, String(sc.q0+k)), el('td',{class:done?'':'na'}, done?'Answered':'Not Answered'))); } });
+  const review=()=>{ TTS.stop(); backB.disabled=nextB.disabled=true; body.innerHTML=''; body.className='xb one'; cnt.textContent='Review'; const tb=el('table',{class:'xrev'}, el('thead',{}, el('tr',{}, el('th',{},'Question'), el('th',{},'Status'))));
+    const tbd=el('tbody'); screens.forEach((sc,i)=>{ if (sc.kind==='audio') return; for (let k=0;k<sc.n;k++){ const done= sc.kind==='ctw'? !!(st.ans[IK(sc.act,sc.x.id)+'|b'+k]||'').trim() : answered(sc); tbd.append(el('tr',{onclick:()=>{ st.idx=i; show(); }}, el('td',{}, String(sc.q0+k)), el('td',{class:done?'':'na'}, done?'Answered':'Not Answered'))); } });
     tb.append(tbd); body.append(el('div',{class:'xq'}, el('div',{class:'xdir'}, 'Select a question to go to it. Select Return to continue.'), el('button',{class:'xbtn',type:'button',onclick:show,style:'margin-bottom:12px'}, 'Return'), tb)); };
   nextB.onclick=()=>{ const sc=screens[st.idx]; if (S.name==='Listening' && sc && sc.kind!=='audio' && !answered(sc)){ toast('Select an answer first'); return; }
     if (st.idx>=screens.length-1){ if (S.name==='Reading'){ const un=screens.filter(s=>s.kind!=='audio' && !answered(s)).length; if (un && !confirm(`${un}개 화면에 빈 답이 있어. 제출할까?`)) return; } finish(); return; } st.idx++; show(); };
   backB.onclick=()=>{ if (st.idx>0){ st.idx--; show(); } }; revB.onclick=review;
   exitB.onclick=()=>{ save(); stopT(); TTS.stop(); go('practice'); toast('진행 저장됨. 같은 시험을 다시 열면 이어서'); };
-  let done_=false;
   const finish=()=>{ if (done_) return; done_=true; stopT(); TTS.stop(); const R2=store.get('exam_resume',{}); delete R2[o.key]; store.set('exam_resume',R2);
     const per={}; let C=0,T=0; const typeAcc={};
     o.items.forEach(({act,id})=>{ const x=findItem(act,id); if (!x) return; let c=0,t=0, ans=[];
-      if (act==='complete_words'){ const re=/([A-Za-z'-]+)\{([A-Za-z'-]+)\}/g; let m,k=0; const typed=[]; while((m=re.exec(x.text))){ const v=(st.ans[id+'|b'+k]||'').trim().toLowerCase(); typed.push(st.ans[id+'|b'+k]||''); const ok=v===m[2].toLowerCase() || v===(m[1]+m[2]).toLowerCase(); c+=ok?1:0; t++; k++; } ans=[typed]; try{ collectCtwMisses(x, typed); }catch(e){} }
-      else if (act==='choose_response'){ const a=st.ans[id+'|0']; c= a===x.answer?1:0; t=1; ans=[a]; }
-      else { x.questions.forEach((q,qi)=>{ const a=st.ans[id+'|'+qi]; c+= a===q.answer?1:0; t++; ans.push(a); }); }
-      per[id]={act,x,c,t,ans}; C+=c; T+=t; const ta=typeAcc[act]||(typeAcc[act]={c:0,t:0}); ta.c+=c; ta.t+=t;
+      if (act==='complete_words'){ const re=/([A-Za-z'-]+)\{([A-Za-z'-]+)\}/g; let m,k=0; const typed=[]; while((m=re.exec(x.text))){ const v=(st.ans[IK(act,id)+'|b'+k]||'').trim().toLowerCase(); typed.push(st.ans[IK(act,id)+'|b'+k]||''); const ok=v===m[2].toLowerCase() || v===(m[1]+m[2]).toLowerCase(); c+=ok?1:0; t++; k++; } ans=[typed]; try{ collectCtwMisses(x, typed); }catch(e){} }
+      else if (act==='choose_response'){ const a=st.ans[IK(act,id)+'|0']; c= a===x.answer?1:0; t=1; ans=[a]; }
+      else { x.questions.forEach((q,qi)=>{ const a=st.ans[IK(act,id)+'|'+qi]; c+= a===q.answer?1:0; t++; ans.push(a); }); }
+      per[IK(act,id)]={act,x,c,t,ans}; C+=c; T+=t; const ta=typeAcc[act]||(typeAcc[act]={c:0,t:0}); ta.c+=c; ta.t+=t;
       LOG.add({type:act, id, c, t, sec:0, meta:{ans, exam:o.key}, date:today()}); });
-    const mins=Math.max(1, Math.round((secs-st.left)/60)); DAYS.addMinutes(mins); if (window.CUR_DRILL) CUR_DRILL.finished=true;
-    wrap.remove(); document.body.classList.remove('examing'); examResult({o, per, C, T, typeAcc, mins, S}); };
-  window.EXAM_CLEANUP=()=>{ stopT(); wrap.remove(); document.body.classList.remove('examing'); };
+    const order=[]; screens.forEach(sc=>{ if (sc.kind==='audio') return; const P=per[IK(sc.act,sc.x.id)]; if (!P) return;
+      if (sc.kind==='ctw'){ const re=/([A-Za-z'-]+)\{([A-Za-z'-]+)\}/g; let m,k=0; while((m=re.exec(sc.x.text))){ const v=(P.ans[0][k]||'').trim().toLowerCase(); order.push(v===m[2].toLowerCase()||v===(m[1]+m[2]).toLowerCase()); k++; } }
+      else if (sc.kind==='cr') order.push(P.ans[0]===sc.x.answer); else order.push(P.ans[sc.qi]===sc.x.questions[sc.qi].answer); });
+    const first10=order.slice(0,10).filter(Boolean).length;
+    const mins=Math.max(1, Math.round((secs-st.left)/60)); DAYS.markBlock('exam:'+o.key, mins);
+    { const ER=store.get('exam_results',{}); ER[o.key]={date:today(), C, T, band:accToBand(T?C/T:0), first10, title:o.title||''}; store.set('exam_results',ER); } if (window.CUR_DRILL) CUR_DRILL.finished=true;
+    document.removeEventListener('visibilitychange', vis); window.EXAM_CLEANUP=null; wrap.remove(); document.body.classList.remove('examing'); examResult({o, per, C, T, typeAcc, mins, S, first10}); };
+  const vis=()=>{ if (document.hidden){ save(); return; } if (wrap.isConnected && !done_){ const sc=screens[st.idx]; if (sc && (sc.kind==='audio'||sc.kind==='cr') && !st.played[IK(sc.act,sc.x.id)]) show(); } }; document.addEventListener('visibilitychange', vis);
+  window.EXAM_CLEANUP=()=>{ stopT(); document.removeEventListener('visibilitychange', vis); wrap.remove(); document.body.classList.remove('examing'); };
   timeEl.textContent=fmtH(st.left); startT(); show(); if (saved) toast(`이어서 진행 · 남은 시간 ${fmt(st.left)}`);
 };
-function examResult({o, per, C, T, typeAcc, mins, S}){ topMeta(); const p=T? C/T : 0; const band=accToBand(p);
-  root.append(el('section',{class:'sec'}, el('div',{class:'summary'}, el('div',{class:'k'}, `${S.name} Section Complete`), el('div',{class:'big'}, `${C} / ${T}`), el('div',{class:'small'}, `${o.title||''} · 정답률 ${pct(p)} · 추정 밴드 ${band} · ${mins}분`))));
+function examResult({o, per, C, T, typeAcc, mins, S, first10}){ topMeta(); const p=T? C/T : 0; const band=accToBand(p);
+  root.append(el('section',{class:'sec'}, el('div',{class:'summary'}, el('div',{class:'k'}, `${S.name} Section Complete`), el('div',{class:'big'}, `${C} / ${T}`), el('div',{class:'small'}, `${o.title||''} · 정답률 ${pct(p)} · 추정 밴드 ${band} · ${mins}분`), el('div',{class:'small',style:'margin-top:4px'}, `첫 10문항 ${first10}/10 · 실제 시험은 1단계 성적이 2단계 난이도를 정해서 첫 10문항이 중요. 밴드는 적응형 미반영 참고값`))));
   const tb=el('table',{class:'tbl'}, el('thead',{}, el('tr',{}, el('th',{},'유형'), el('th',{},'정답'), el('th',{},'정답률')))); const tbd=el('tbody');
   Object.entries(typeAcc).forEach(([act,v])=>tbd.append(el('tr',{}, el('td',{}, ACT[act].name), el('td',{class:'n'}, `${v.c}/${v.t}`), el('td',{class:'n'}, pct(v.c/v.t))))); tb.append(tbd);
   const weak=Object.entries(typeAcc).sort((a,b)=>a[1].c/a[1].t-b[1].c/b[1].t)[0];
   root.append(el('section',{class:'sec'}, sectionHead('유형별 결과'), el('div',{class:'panel tblwrap'}, tb), weak && weak[1].c<weak[1].t? el('div',{class:'note',style:'margin-top:8px'}, `가장 약한 유형은 ${ACT[weak[0]].name} (${pct(weak[1].c/weak[1].t)}). 아래 해설을 보고 같은 유형 드릴 1세트를 이어서 풀면 좋아.`) : null,
-    el('div',{class:'row',style:'margin-top:10px'}, weak? el('button',{class:'btn',type:'button',onclick:()=>go('drill',{act:weak[0],count:1})}, `${ACT[weak[0]].name} 드릴`) : null, el('button',{class:'btn sec',type:'button',onclick:()=>go('practice')}, '연습으로'))));
+    el('div',{class:'row',style:'margin-top:10px'}, (()=>{ const byAct={}; Object.values(per).forEach(v=>{ if (v.c<v.t) (byAct[v.act]=byAct[v.act]||[]).push(v.x.id); }); const q=Object.entries(byAct).map(([type,ids])=>({type,ids})); return q.length? el('button',{class:'btn',type:'button',onclick:()=>go('drill',{act:'review', reviewNext:q[0], reviewRest:q.slice(1), title:'실전 오답 다시 풀기'})}, `틀린 문제만 다시 풀기 (${q.reduce((a,b)=>a+b.ids.length,0)}세트)`) : null; })(), el('button',{class:'btn sec',type:'button',onclick:()=>go('practice')}, '연습으로'))));
   const rv=el('section',{class:'sec'}, sectionHead('문제별 해설', el('span',{class:'small'}, '틀린 문제 먼저 확인'))); const L=['A','B','C','D'];
   Object.values(per).forEach(({act,x,c,t,ans})=>{ const card=el('div',{class:'panel',style:'margin-bottom:12px'}); card.append(el('div',{class:'row'}, el('span',{class:'badge '+(c===t?'ok':c? 'warn':'ng')}, `${c}/${t}`), el('b',{style:'margin-left:6px'}, ACT[act].name), el('span',{class:'small',style:'margin-left:6px'}, x.title||x.topic||x.subject||x.kind||'')));
     if (act==='complete_words'){ const re=/([A-Za-z'-]+)\{([A-Za-z'-]+)\}/g; let last=0,m,k=0; const pp=el('div',{class:'passage'}); while((m=re.exec(x.text))){ pp.append(x.text.slice(last,m.index)); const typed=(ans[0][k]||'').trim(); const ok=typed.toLowerCase()===m[2].toLowerCase()||typed.toLowerCase()===(m[1]+m[2]).toLowerCase(); pp.append(el('b',{style:`color:${ok?'var(--ok,#1a7f37)':'var(--ng,#c62828)'}`}, m[1]+m[2]), ok? '' : el('span',{class:'small'}, ` (내 답 ${m[1]}${typed||'_'})`)); last=m.index+m[0].length; k++; } pp.append(x.text.slice(last)); card.append(pp); try{ card.append(ctwNotesNode(x, ans[0])); }catch(e){} }
