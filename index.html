@@ -756,8 +756,9 @@ async function prefetchAudio(keys){ if (PREFETCHING || !('caches' in window) || 
   await Promise.all([worker(),worker(),worker(),worker()]);
   const all=await c.keys(); if (all.length>900){ for (const r of all.slice(0, all.length-900)) await c.delete(r); } }catch(e){} PREFETCHING=false; }
 function prefetchToday(){ try{ const {blocks}=blocksFor(); const keys=new Set(); blocks.forEach(b=>{ const A=ACT[b.activity]; if (!A || !A.bank || !['listening','speaking'].includes(A.sec)) return; const n=+b.count||1; const sets=b.activity==='interview'? Math.ceil(n/4) : b.activity==='listen_repeat'? Math.ceil(n/7) : n; pickItems(b.activity, sets+2).forEach(it=>itemAudioKeys(it).forEach(k=>keys.add(k))); }); if (keys.size) setTimeout(()=>prefetchAudio(keys), 1500); }catch(e){} }
-const BUILD = '2026-10-19 00:43';
+const BUILD = '2026-10-19 00:48';
 const OFF_VER = 'def47259ee';
+try{ const sv=JSON.parse(localStorage.getItem('coach:settings')||'{}'); if (!sv.mig1206){ Object.assign(sv,{test1:'2026-12-06', test2:'', test3:'', registered:false, mig1206:true}); localStorage.setItem('coach:settings', JSON.stringify(sv)); } }catch(e){}
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -798,7 +799,7 @@ const store = {
   get(k,d){ try{ const v=localStorage.getItem('coach:'+k); return v==null? d : JSON.parse(v);}catch(e){return d;} },
   set(k,v){ try{ localStorage.setItem('coach:'+k, JSON.stringify(v)); }catch(e){ toast('저장 실패. 브라우저 저장 공간 확인 필요'); } }
 };
-const settings = Object.assign({rate:1.0, voiceM:'', voiceW:'', test1:'2026-10-24', test2:'2026-11-14', test3:'', registered:false, exam1Result:null, exam2Result:null, newWords:25, cardMode:'type', deckOrder:'adv', minimum:false}, store.get('settings',{}));
+const settings = Object.assign({rate:1.0, voiceM:'', voiceW:'', test1:'2026-12-06', test2:'', test3:'', registered:false, exam1Result:null, exam2Result:null, newWords:25, cardMode:'type', deckOrder:'adv', minimum:false}, store.get('settings',{}));
 const saveSettings = () => store.set('settings', settings);
 // one-time import of vocab progress from the older mock test on the same origin
 if (!store.get('vocab',null)){ try{ const old=localStorage.getItem('toefl:vocab'); if (old) store.set('vocab', JSON.parse(old)); }catch(e){} }
@@ -1585,7 +1586,7 @@ function baseBlocks(d=today()){
 }
 /* Each rule mirrors one numbered rule of the scenario. test() returns a detail string when it fires; apply() edits today's blocks. */
 const RULESET = [
-  {id:2, test(){ return !settings.registered ? '1차·2차 접수 미확인' : false; }, lock:true},
+  {id:2, hidden:true, test(){ return false; }},
   {id:1, note:'오늘은 기준 모의고사와 오답 리뷰만. 모의는 연습 탭 모의고사에서 진행', test(){ const ne=nextExam(); return mockCount()===0 && ne && ne.days>5 && dayKind().weekend ? '모의고사 기록 0건' : false; },
     apply(B){ return [{block:'기준 모의고사', minutes:110, activity:'mock', count:1, note:'콜드 스타트. 12유형 기준선'}, {block:'오답 전수 리뷰', minutes:70, activity:'review', count:10, note:'유형별 정답률표, weakest 2개 확정'}]; }},
   {id:14, note:'오늘은 15분 최소 루틴. 내일 60%, 모레 100%로 복귀. 최소 루틴도 연속 기록 인정', test(){ const f=firstDay(); if (!f) return false; const y=addDays(today(),-1), y2=addDays(today(),-2); if (y2<f) return false; return (!DAYS.active(y) && !DAYS.active(y2)) ? '2일 연속 결석' : false; },
@@ -1637,8 +1638,8 @@ function ruleText(id){ const r=(PLAN.rules||[]).find(x=>x.id===Math.floor(id)); 
 function newWordsToday(){
   // rule 11: spread unknown words to exam2 - 3 days, cap 25, zero within 3 days of an exam
   const n=nextExam(); if (n && n.days<=3) return 0;
-  const left=V.stats().fresh.length; const d2=diffDays(today(), settings.test2);
-  const cap = diffDays(today(), settings.test1)>=0? 15 : 25; return Math.min(cap, Math.ceil(left/Math.max(d2-3,1)));
+  const left=V.stats().fresh.length; const lastEx=[settings.test1, settings.test2, settings.test3].filter(Boolean).sort().pop()||addDays(today(),45); const d2=diffDays(today(), lastEx);
+  const cap = (nextExam()&&nextExam().days<=21)? 15 : 25; return Math.min(cap, Math.ceil(left/Math.max(d2-3,1)));
 }
 function rehearsalFor(label){ const sec= label==='D-5'? 'reading' : label==='D-4'? 'listening' : null; if (!sec) return null; const ER=store.get('exam_results',{}); const srcs=examSources().filter(g=>g.sec===sec && /^ETS/.test(g.source)); const g=srcs.find(g=>!ER[g.source+'|'+sec]) || null;
   return g? {sec, key:g.source+'|'+sec, items:g.items, title:g.source} : {sec, key:'fresh|'+sec+'|'+today(), title:`새 ${EXAM_SECS[sec].name} 세트`}; }
@@ -1670,7 +1671,7 @@ function renderNav(){ for (const id of ['deskTabs','mobTabs']){ const n=document
 let VIEW_SEQ=0, SPEAK_ACTIVE=false, LAST_ARG=null, RESET_ON_RETURN=false;
 function go(view, arg){ if (window.EXAM_CLEANUP){ const c=window.EXAM_CLEANUP; window.EXAM_CLEANUP=null; c(); } { const cd=window.CUR_DRILL; window.CUR_DRILL=null; if (cd && !cd.finished && cd.touched && !cd.resumable){ const m=Math.round((Date.now()-cd.t0)/60000); if (m>=1) DAYS.addMinutes(m); } } if (window.PENDING_RELOAD && view!=='drill'){ window.PENDING_RELOAD=false; location.hash=view; location.reload(); return; } TIMERS.forEach(t=>t.stop()); TIMERS.clear(); document.body.classList.remove('drilling','has-cta'); document.querySelectorAll('.abar,.home-cta').forEach(x=>x.remove()); window.CUR_AB=null; window.CUR_PROG=null; VIEW_SEQ++; SPEAK_ACTIVE=false; LAST_ARG=arg; TTS.stop(); REC.release(); document.onkeydown=null; current=view; renderNav(); root.innerHTML=''; VIEWS[view](arg); window.scrollTo(0,0); try{ history.replaceState(null,'','#'+view); }catch(e){} }
 function topMeta(){ const ne=nextExam(); const which = ne? (ne.date===settings.test1? '1차' : ne.date===settings.test2? '2차' : '3차') : '';
-  $('#topMeta').textContent = ne? `${which} 시험 D-${ne.days}` : '시험 일정 지남'; }
+  $('#topMeta').textContent = ne? `${settings.test2||settings.test3? which+' ' : ''}시험 D-${ne.days}${settings.registered? '' : ' (예정)'}` : '시험일 미정'; }
 
 /* ---------- views: today ---------- */
 function sectionHead(title, right){ return el('div',{class:'sec-h'}, el('div',{class:'h5'}, title), right||null); }
@@ -1711,9 +1712,9 @@ VIEWS.today = ()=>{
     el('div',{class:'cheer'}, cheer(d)),
     el('div',{class:'sub2'}, ne? (ne.days===0? 'Test day' : `${ne.days} ${ne.days===1?'day':'days'} until your ${ne.date===settings.test1?'first':ne.date===settings.test2?'second':'next'} test`) : ''));
   { const bg=el('div',{class:'sfbg'}); bg.innerHTML=SF_SVG; helloSec.prepend(bg); helloSec.append(el('div',{class:'sfcap'}, 'San Francisco is waiting')); } root.append(helloSec);
-  if (locked) root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'},
-    el('div',{class:'gh'}, el('div',{class:'n'}, '시험 접수 확인')), el('div',{class:'small'}, `1차 ${settings.test1.slice(5).replace('-','/')}, 2차 ${settings.test2.slice(5).replace('-','/')} 접수됐는지 ETS에서 확인. 확인해야 오늘 학습이 열려.`),
-    el('div',{class:'row',style:'margin-top:12px'}, el('a',{class:'btn sm',href:'https://www.ets.org/toefl/test-takers/ibt/register.html',target:'_blank',rel:'noopener'}, 'ETS 열기'), el('button',{class:'btn sec sm',type:'button',onclick:()=>{ settings.registered=true; saveSettings(); toast('좋아. 이제 시작'); go('today'); }}, '접수 확인함')))));
+  if (!settings.registered) root.append(el('section',{class:'sec'}, el('div',{class:'gcard',style:'margin-top:0'},
+    el('div',{class:'gh'}, el('div',{class:'n'}, '시험 접수 전')), el('div',{class:'small'}, `시험일은 ${settings.test1.slice(5).replace('-','/')} 예정으로 잡아둠. 접수하면 날짜를 확인하고 아래 버튼을 눌러줘. 기록 탭 설정에서 날짜를 바꿀 수 있어.`),
+    el('div',{class:'row',style:'margin-top:12px'}, el('a',{class:'btn sm',href:'https://www.ets.org/toefl/test-takers/ibt/register.html',target:'_blank',rel:'noopener'}, 'ETS 열기'), el('button',{class:'btn sec sm',type:'button',onclick:()=>{ settings.registered=true; saveSettings(); toast('접수 완료로 표시함'); go('today'); }}, '접수 완료')))));
   // week strip
   const mon=addDays(d, -((k.w+6)%7)); const wk=el('div',{class:'week','aria-label':'이번 주 학습'});
   ['월','화','수','목','금','토','일'].forEach((n,i)=>{ const x=addDays(mon,i); const v=DAYS.all()[x]; const bl=v? Object.keys(v.blocks||{}).length:0; const plan=x===d? blocks.length : 0;
