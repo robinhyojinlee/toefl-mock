@@ -500,6 +500,46 @@ body.has-cta{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 @keyframes stamp{0%{transform:scale(.4) rotate(-20deg);opacity:0}60%{transform:scale(1.2) rotate(6deg);opacity:1}100%{transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion:reduce){.wd.heart.today i{animation:none}}
 body.drilling .toast{top:calc(64px + env(safe-area-inset-top));bottom:auto}
+.exam{position:fixed;inset:0;z-index:60;background:#fff;color:#1b1b1b;font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column}
+.exam .xh{background:#22313f;color:#fff;display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top))}
+.exam .xh .logo{font-weight:700;font-size:16px;letter-spacing:.3px;white-space:nowrap}
+.exam .spacer{flex:1}
+.exam .xbtn{background:linear-gradient(#ffffff,#d7dde3);color:#22313f;border:1px solid #8d99a5;border-radius:18px;padding:7px 16px;font-weight:700;font-size:14px;cursor:pointer;min-height:34px}
+.exam .xbtn:disabled{opacity:.45;cursor:default}
+.exam .xnext{background:linear-gradient(#2f80c4,#1d5f99);color:#fff;border-color:#174e7e}
+.exam .xexit{background:transparent;color:#cfd8e1;border-color:#56677a}
+.exam .xs{background:#e8ecf0;border-bottom:1px solid #c5ccd3;display:flex;align-items:center;gap:12px;padding:7px 14px;font-size:13px;color:#22313f}
+.exam .xs .xsrc{color:#5b6b7b}
+.exam .xtw{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.exam .xt{font-weight:700;font-size:14px}
+.exam .xt.low{color:#c62828}
+.exam .xlink{background:none;border:1px solid #9aa6b1;border-radius:4px;font-size:12px;padding:2px 8px;color:#22313f;cursor:pointer}
+.exam .xb{flex:1;overflow:hidden;display:flex;min-height:0}
+.exam .xb.one{overflow:auto;display:block}
+.exam .xp{flex:1;overflow:auto;padding:22px 26px;border-right:1px solid #c5ccd3;line-height:1.75;font-size:16px}
+.exam .xp h3{font-size:17px;margin:0 0 10px}
+.exam .xp p{margin:0 0 12px}
+.exam .xq{flex:1;overflow:auto;padding:22px 26px;max-width:860px;margin:0 auto}
+.exam .xdir{font-weight:700;margin-bottom:14px;color:#22313f}
+.exam .xstem{font-size:16px;font-weight:700;margin-bottom:14px;line-height:1.6}
+.exam .xopts{display:grid;gap:4px}
+.exam .xopt{display:flex;gap:12px;align-items:flex-start;padding:10px 8px;border-radius:6px;cursor:pointer;font-size:16px;line-height:1.5}
+.exam .xopt:hover{background:#f1f4f7}
+.exam .xopt input{width:18px;height:18px;margin-top:3px;flex:none;accent-color:#1d5f99}
+.exam .xpara{font-size:17px;line-height:2.3}
+.exam .xw{white-space:nowrap}
+.exam .xblank{font-family:'Courier New',Courier,monospace;font-size:17px;letter-spacing:.45ch;border:0;padding:0;margin-left:1px;background:repeating-linear-gradient(90deg,#22313f 0 1ch,transparent 1ch 1.45ch) left bottom/100% 2px no-repeat;color:#1d5f99;outline:none}
+.exam .xblank:focus{background-color:#eef5fc}
+.exam .xwave,.exam .xpic{font-size:56px;text-align:center;margin:28px 0}
+.exam .xprog{height:6px;background:#dde3e8;border-radius:3px;overflow:hidden;max-width:420px;margin:0 auto 16px}
+.exam .xprog i{display:block;height:100%;width:0;background:#1d5f99;transition:width .3s}
+.exam .xrev{width:100%;border-collapse:collapse;font-size:14px}
+.exam .xrev td,.exam .xrev th{border-bottom:1px solid #dde3e8;padding:8px;text-align:left}
+.exam .xrev tr{cursor:pointer}
+.exam .xrev td.na{color:#c62828;font-weight:700}
+.exam .hidden{display:none}
+body.examing{overflow:hidden}
+@media (max-width:760px){ .exam .xb{flex-direction:column;overflow:auto} .exam .xp{flex:none;border-right:0;border-bottom:1px solid #c5ccd3;padding:16px} .exam .xq{padding:16px} .exam .xbtn{padding:6px 12px;font-size:13px} .exam .xh .logo{font-size:14px} .exam .xs .xsrc{display:none} }
 </style>
 </head>
 <body>
@@ -712,7 +752,8 @@ async function prefetchAudio(keys){ if (PREFETCHING || !('caches' in window) || 
   await Promise.all([worker(),worker(),worker(),worker()]);
   const all=await c.keys(); if (all.length>900){ for (const r of all.slice(0, all.length-900)) await c.delete(r); } }catch(e){} PREFETCHING=false; }
 function prefetchToday(){ try{ const {blocks}=blocksFor(); const keys=new Set(); blocks.forEach(b=>{ const A=ACT[b.activity]; if (!A || !A.bank || !['listening','speaking'].includes(A.sec)) return; const n=+b.count||1; const sets=b.activity==='interview'? Math.ceil(n/4) : b.activity==='listen_repeat'? Math.ceil(n/7) : n; pickItems(b.activity, sets+2).forEach(it=>itemAudioKeys(it).forEach(k=>keys.add(k))); }); if (keys.size) setTimeout(()=>prefetchAudio(keys), 1500); }catch(e){} }
-const BUILD = '2026-10-11 12:05';
+const BUILD = '2026-10-19 00:08';
+const OFF_VER = 'def47259ee';
 
 /* ---------- utils ---------- */
 const $ = (s, r=document) => r.querySelector(s);
@@ -960,7 +1001,7 @@ function ctwNotesNode(item, typedArr){
       dg && dg.k!=='ok'? el('div',{class:'small',style:'color:var(--fg-error);margin-top:2px'}, `내 답 ${typed? m[1]+typed : '(빈칸)'} · ${dg.label}`) : null,
       nt.why? el('div',{class:'small',style:'color:var(--fg-base);margin-top:2px'}, '왜: '+nt.why) : null,
       dg && dg.k!=='ok' && dg.tip && (dg.k==='spell'||dg.k==='suffix'||!tipShown.has(dg.k)) && (tipShown.add(dg.k),true)? el('div',{class:'small',style:'margin-top:2px'}, '다음엔: '+dg.tip) : null,
-      nt.trap? el('div',{class:'small',style:'margin-top:2px'}, '함정: '+nt.trap) : null))); k++; }
+      nt.trap? el('div',{class:'small',style:'margin-top:2px'}, '함정: '+nt.trap) : null, nt.tip? el('div',{class:'small',style:'margin-top:2px'}, '팁: '+nt.tip) : null))); k++; }
   return box; }
 
 /* ---------- task renderers: each returns {node, grade()->{c,t,meta}} ---------- */
@@ -1461,6 +1502,8 @@ function mergeOfficial(d){ if (!d || !d.items) return 0; let n=0;
   for (const [t,arr] of Object.entries(d.items)){ const m=OFF_MAP[t]; if (!m) continue; const dest=BANK[m[0]][m[1]]; const have=new Set(dest.map(x=>x.id)); arr.forEach(x=>{ OFF_IDS.add(x.id); if (!have.has(x.id)){ x.official=true; dest.push(x); n++; } }); }
   OFF_AKEYS=new Set(d.audio||[]); return n; }
 try{ mergeOfficial(store.get('official',null)); }catch(e){}
+// official.enc changed since this device unlocked it: re-open silently with the saved key
+setTimeout(()=>{ const k=store.get('offkey',''); if (k && store.get('offver','')!==OFF_VER){ unlockOfficial(k).then(n=>{ store.set('offver',OFF_VER); toast(`실전 문제 묶음 갱신 · ${n}개`); }).catch(()=>{}); } }, 1200);
 const b64u = s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)), c=>c.charCodeAt(0));
 async function unlockOfficial(keyStr){ // official.enc = 12-byte nonce + AES-256-GCM ciphertext
   const buf=new Uint8Array(await (await fetch('official.enc',{cache:'no-store'})).arrayBuffer());
@@ -1468,7 +1511,7 @@ async function unlockOfficial(keyStr){ // official.enc = 12-byte nonce + AES-256
   const plain=await crypto.subtle.decrypt({name:'AES-GCM', iv:buf.slice(0,12)}, key, buf.slice(12));
   const d=JSON.parse(new TextDecoder().decode(plain));
   try{ const c=await caches.open('official-audio'); for (const [k,b] of Object.entries(d.audio||{})){ await c.put('/off/'+k, new Response(new Blob([b64u(b)],{type:'audio/mpeg'}))); } }catch(e){}
-  const slim={items:d.items, audio:Object.keys(d.audio||{})}; store.set('official', slim); store.set('offkey', keyStr); mergeOfficial(slim); return OFF_IDS.size; }
+  const slim={items:d.items, audio:Object.keys(d.audio||{})}; store.set('official', slim); store.set('offkey', keyStr); store.set('offver', OFF_VER); mergeOfficial(slim); return OFF_IDS.size; }
 const OFF_URLS={};
 async function officialAudioURL(k){ if (OFF_URLS[k]) return OFF_URLS[k]; let blob=null;
   try{ const c=await caches.open('official-audio'); const hit=await c.match('/off/'+k); if (hit) blob=await hit.blob(); }catch(e){}
@@ -1619,7 +1662,7 @@ const VIEWS={}; const root=$('#main'); let current='today';
 const NAV=[['today','오늘'],['practice','연습'],['vocab','단어'],['progress','기록'],['library','자료']];
 function renderNav(){ for (const id of ['deskTabs','mobTabs']){ const n=document.getElementById(id); n.innerHTML=''; NAV.forEach(([k,t])=>n.append(el('button',{type:'button','aria-current':k===current?'page':null, onclick:()=>go(k)}, svg(ICON[k]), el('span',{}, t)))); } }
 let VIEW_SEQ=0, SPEAK_ACTIVE=false, LAST_ARG=null, RESET_ON_RETURN=false;
-function go(view, arg){ { const cd=window.CUR_DRILL; window.CUR_DRILL=null; if (cd && !cd.finished && cd.touched && !cd.resumable){ const m=Math.round((Date.now()-cd.t0)/60000); if (m>=1) DAYS.addMinutes(m); } } if (window.PENDING_RELOAD && view!=='drill'){ window.PENDING_RELOAD=false; location.hash=view; location.reload(); return; } TIMERS.forEach(t=>t.stop()); TIMERS.clear(); document.body.classList.remove('drilling','has-cta'); document.querySelectorAll('.abar,.home-cta').forEach(x=>x.remove()); window.CUR_AB=null; window.CUR_PROG=null; VIEW_SEQ++; SPEAK_ACTIVE=false; LAST_ARG=arg; TTS.stop(); REC.release(); document.onkeydown=null; current=view; renderNav(); root.innerHTML=''; VIEWS[view](arg); window.scrollTo(0,0); try{ history.replaceState(null,'','#'+view); }catch(e){} }
+function go(view, arg){ if (window.EXAM_CLEANUP){ const c=window.EXAM_CLEANUP; window.EXAM_CLEANUP=null; c(); } { const cd=window.CUR_DRILL; window.CUR_DRILL=null; if (cd && !cd.finished && cd.touched && !cd.resumable){ const m=Math.round((Date.now()-cd.t0)/60000); if (m>=1) DAYS.addMinutes(m); } } if (window.PENDING_RELOAD && view!=='drill'){ window.PENDING_RELOAD=false; location.hash=view; location.reload(); return; } TIMERS.forEach(t=>t.stop()); TIMERS.clear(); document.body.classList.remove('drilling','has-cta'); document.querySelectorAll('.abar,.home-cta').forEach(x=>x.remove()); window.CUR_AB=null; window.CUR_PROG=null; VIEW_SEQ++; SPEAK_ACTIVE=false; LAST_ARG=arg; TTS.stop(); REC.release(); document.onkeydown=null; current=view; renderNav(); root.innerHTML=''; VIEWS[view](arg); window.scrollTo(0,0); try{ history.replaceState(null,'','#'+view); }catch(e){} }
 function topMeta(){ const ne=nextExam(); const which = ne? (ne.date===settings.test1? '1차' : ne.date===settings.test2? '2차' : '3차') : '';
   $('#topMeta').textContent = ne? `${which} 시험 D-${ne.days}` : '시험 일정 지남'; }
 
@@ -1946,6 +1989,11 @@ VIEWS.practice = ()=>{
         acc==null? null : el('span',{class:'badge '+(acc>=.85?'ok':acc<.7?'ng':'warn')}, `7일 ${pct(acc)}`), svg(ICON.chev,'chev'))); });
     root.append(el('section',{class:'sec'}, sectionHead(SEC_NAME[s]), list));
   }
+  { const sec=el('section',{class:'sec'}); sec.append(sectionHead('실전 시험', el('span',{class:'small'}, 'TOEFL 시험 화면 · 끝나고 채점·해설'))); const list=el('div',{class:'list'}); const RS=store.get('exam_resume',{});
+    const row=(t,d,on,k)=>el('button',{class:'item',type:'button',onclick:on}, el('div',{class:'body'}, el('div',{class:'t'}, t), el('div',{class:'d'}, (k && RS[k]? `이어서 · 남은 시간 ${fmt(RS[k].left)} · ` : '')+d)), svg(ICON.chev,'chev'));
+    ['reading','listening'].forEach(sec_=>{ const k='fresh|'+sec_+'|'+today(); list.append(row(`새 ${EXAM_SECS[sec_].name} 세트`, sec_==='reading'? '빈칸 2문단 · 일상 5 · 학술 3 · 약 50문항 · 27분' : '응답 18 · 대화 5 · 공지 4 · 강의 3 · 약 48문항', ()=>{ const r=store.get('exam_resume',{})[k]; startExam({sec:sec_, key:k, items: r? r.ids.split(',').map(id=>({act:EXAM_SECS[sec_].acts.find(a=>findItem(a,id)), id})) : null, title:`새 ${EXAM_SECS[sec_].name} 세트`}); }, k)); });
+    examSources().forEach(g=>{ const k=g.source+'|'+g.sec; list.append(row(`${g.source} · ${EXAM_SECS[g.sec].name}`, `${examCount(g.items)}문항 · ${LOG.all().some(a=>a.meta&&a.meta.exam===k)? '푼 적 있음' : '처음'}`, ()=>startExam({sec:g.sec, key:k, items:g.items, title:g.source}), k)); });
+    sec.append(list); root.append(sec); }
   { const sec=el('section',{class:'sec'}); sec.append(sectionHead('ETS 공식 문제', el('span',{class:'small'}, '공식 모의고사 2회분 · 잠금')));
     const offAct={complete_words:'complete_the_words',daily_life:'daily_life',academic_reading:'academic',choose_response:'choose_response',conversation:'conversations',announcement:'announcements',academic_talk:'talks',build_sentence:'build_sentence',email:'emails',discussion:'academic_discussion',listen_repeat:'listen_repeat',interview:'interviews'};
     if (!OFF_IDS.size){ const inp=el('input',{type:'password',class:'in',placeholder:'열쇠 붙여넣기','aria-label':'열쇠',style:'width:100%'});
@@ -1961,6 +2009,93 @@ VIEWS.practice = ()=>{
     el('button',{class:'item',type:'button',onclick:()=>go('drill',{act:'review',count:8})}, el('div',{class:'body'}, el('div',{class:'t'}, '오답 복습'), el('div',{class:'d'}, `최근 14일 정답률 70% 미만 ${wrongItems(14).length}개`)), svg(ICON.chev,'chev')),
     el('a',{class:'item',href:'mock.html#full',style:'text-decoration:none;color:inherit'}, el('div',{class:'body'}, el('div',{class:'t'}, '풀 모의고사'), el('div',{class:'d'}, '4영역 타이머 실전. 결과는 기록 탭 모의고사 표에 반영')), svg(ICON.chev,'chev')))));
 };
+
+/* ---------- exam mode: TOEFL-style test screen ---------- */
+const EXAM_SECS={reading:{name:'Reading', acts:['complete_words','daily_life','academic_reading']}, listening:{name:'Listening', acts:['choose_response','conversation','announcement','academic_talk']}};
+const EXAM_FORM={reading:[['complete_words',2],['daily_life',5],['academic_reading',3]], listening:[['choose_response',18],['conversation',5],['announcement',4],['academic_talk',3]]};
+function examSources(){ const out={}; Object.entries(EXAM_SECS).forEach(([sec,S])=>S.acts.forEach(act=>ACT[act].bank().forEach(x=>{ if (!x.source) return; const k=x.source+'|'+sec; (out[k]=out[k]||{source:x.source, sec, items:[]}).items.push({act, id:x.id}); }))); return Object.values(out).sort((a,b)=>a.source.localeCompare(b.source)||(a.sec==='reading'?-1:1)); }
+function examCount(items){ let n=0; items.forEach(({act,id})=>{ const x=findItem(act,id); if (!x) return; n+= act==='complete_words'? (x.text.match(/\{/g)||[]).length : act==='choose_response'? 1 : (x.questions||[]).length; }); return n; }
+function examFresh(sec){ return EXAM_FORM[sec].flatMap(([act,n])=>pickItems(act,n).map(x=>({act, id:x.id}))); }
+function examTurns(act,x){ return act==='conversation'? x.turns : [{speaker:x.speaker||'W', text:x.text}]; }
+function startExam(o){ const items=o.items||examFresh(o.sec); go('exam',{...o, items, key:o.key||('fresh|'+o.sec+'|'+today())}); }
+VIEWS.exam = (o)=>{
+  document.body.classList.add('examing'); const S=EXAM_SECS[o.sec];
+  // screens
+  const screens=[]; let qn=0;
+  o.items.forEach(({act,id})=>{ const x=findItem(act,id); if (!x) return;
+    if (act==='complete_words'){ const n=(x.text.match(/\{/g)||[]).length; screens.push({kind:'ctw', act, x, q0:qn+1, n}); qn+=n; }
+    else if (act==='choose_response'){ qn++; screens.push({kind:'cr', act, x, q0:qn, n:1}); }
+    else if (S.name==='Listening'){ screens.push({kind:'audio', act, x, n:0}); x.questions.forEach((q,qi)=>{ qn++; screens.push({kind:'lq', act, x, qi, q0:qn, n:1}); }); }
+    else x.questions.forEach((q,qi)=>{ qn++; screens.push({kind:'mcq', act, x, qi, q0:qn, n:1}); }); });
+  const total=qn; const secs=o.seconds || Math.max(300, Math.round(total*(S.name==='Reading'? 33 : 36)));
+  const R=store.get('exam_resume',{}); const saved=R[o.key]; const st=saved && saved.ids===o.items.map(i=>i.id).join(',')? saved : {ids:o.items.map(i=>i.id).join(','), idx:0, left:secs, ans:{}, played:{}};
+  const save=()=>{ const R2=store.get('exam_resume',{}); R2[o.key]=st; store.set('exam_resume',R2); };
+  const wrap=el('div',{class:'exam'}); document.body.append(wrap); window.CUR_DRILL={t0:Date.now(), finished:false, touched:false, resumable:true};
+  const timeEl=el('span',{class:'xt'}), hideB=el('button',{class:'xlink',type:'button'}, 'Hide Time'); let hidden=false; hideB.onclick=()=>{ hidden=!hidden; timeEl.style.visibility=hidden?'hidden':'visible'; hideB.textContent=hidden?'Show Time':'Hide Time'; };
+  const cnt=el('span',{class:'xc'});
+  const backB=el('button',{class:'xbtn',type:'button'}, 'Back'), nextB=el('button',{class:'xbtn xnext',type:'button'}, 'Next'), revB=el('button',{class:'xbtn',type:'button'}, 'Review'), exitB=el('button',{class:'xbtn xexit',type:'button'}, 'Exit');
+  wrap.append(el('div',{class:'xh'}, el('span',{class:'logo'}, 'TOEFL iBT'), el('span',{class:'spacer'}), exitB, S.name==='Reading'? revB : null, S.name==='Reading'? backB : null, nextB),
+    el('div',{class:'xs'}, el('b',{}, S.name), el('span',{class:'xsrc'}, o.title||''), el('span',{class:'spacer'}), cnt, el('span',{class:'xtw'}, timeEl, hideB)));
+  const body=el('div',{class:'xb'}); wrap.append(body);
+  let tick=null; const stopT=()=>{ clearInterval(tick); tick=null; };
+  const startT=()=>{ stopT(); const end=Date.now()+st.left*1000; tick=setInterval(()=>{ st.left=Math.max(0, Math.round((end-Date.now())/1000)); timeEl.textContent=fmtH(st.left); timeEl.classList.toggle('low', st.left<=300); if (st.left<=0){ stopT(); toast('Time is up'); finish(); } else if (st.left%5===0) save(); },500); };
+  const fmtH=s=>`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor(s%3600/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  const answered=sc=>{ if (sc.kind==='ctw'){ return [...Array(sc.n).keys()].every(k=>(st.ans[sc.x.id+'|b'+k]||'').trim()); } if (sc.kind==='audio') return true; return st.ans[sc.x.id+'|'+(sc.qi||0)]!=null; };
+  const optsNode=(sc, q)=>{ const key=sc.x.id+'|'+(sc.qi||0); const box=el('div',{class:'xopts',role:'radiogroup'});
+    q.options.forEach((t,i)=>{ const inp=el('input',{type:'radio',name:'xq',value:i}); if (st.ans[key]===i) inp.checked=true; inp.onchange=()=>{ st.ans[key]=i; DAYS.touch(); save(); }; box.append(el('label',{class:'xopt'}, inp, el('span',{}, t))); }); return box; };
+  const show=()=>{ TTS.stop(); const sc=screens[st.idx]; if (!sc){ finish(); return; } body.innerHTML=''; body.className='xb'; save();
+    cnt.textContent= sc.kind==='audio'? 'Listen' : sc.n>1? `Questions ${sc.q0}-${sc.q0+sc.n-1} of ${total}` : `Question ${sc.q0} of ${total}`;
+    backB.disabled= st.idx===0; nextB.disabled=false;
+    if (sc.kind==='ctw'){ body.classList.add('one'); const p=el('div',{class:'xq'}); p.append(el('div',{class:'xdir'}, 'Fill in the missing letters in the paragraph.'));
+      const para=el('div',{class:'xpara'}); const re=/([A-Za-z'-]+)\{([A-Za-z'-]+)\}/g; let last=0, m, k=0; const t=sc.x.text;
+      while ((m=re.exec(t))){ para.append(t.slice(last, m.index)); const kk=k; const len=m[2].length; const inp=el('input',{class:'xblank',type:'text',autocomplete:'off',autocapitalize:'off',autocorrect:'off',spellcheck:'false',maxlength:len,'aria-label':`Question ${sc.q0+kk}`,style:`width:${len*1.45+0.4}ch`}); inp.value=st.ans[sc.x.id+'|b'+kk]||''; inp.oninput=()=>{ st.ans[sc.x.id+'|b'+kk]=inp.value; DAYS.touch(); if (inp.value.length>=len){ const nx=para.querySelectorAll('.xblank')[kk+1]; if (nx) nx.focus(); } save(); };
+        para.append(el('span',{class:'xw'}, m[1], inp)); last=m.index+m[0].length; k++; }
+      para.append(t.slice(last)); p.append(para); body.append(p); }
+    else if (sc.kind==='mcq'){ const q=sc.x.questions[sc.qi]; const left=el('div',{class:'xp'}); if (sc.x.title) left.append(el('h3',{}, sc.x.title)); String(sc.x.text).split(/\n\s*\n/).forEach(par=>left.append(el('p',{}, par))); 
+      const right=el('div',{class:'xq'}, el('div',{class:'xstem'}, q.stem), optsNode(sc,q)); body.append(left, right); }
+    else if (sc.kind==='cr'){ body.classList.add('one'); const q={options:sc.x.options}; const right=el('div',{class:'xq'}); const note=el('div',{class:'xdir'}, 'Listen and choose the best response.'); const box=optsNode(sc,q); right.append(note, el('div',{class:'xwave'}, '🔊'), box);
+      const pk=sc.x.id; if (!st.played[pk]){ box.classList.add('hidden'); nextB.disabled=true; TTS.speak(sc.x.utterance, sc.x.speaker||'W').then(()=>{ st.played[pk]=1; save(); box.classList.remove('hidden'); nextB.disabled=false; }); } body.append(right); }
+    else if (sc.kind==='audio'){ body.classList.add('one'); const pk=sc.x.id; const bar=el('i'); const right=el('div',{class:'xq xaud'}, el('div',{class:'xdir'}, sc.act==='conversation'? 'Listen to a conversation.' : sc.act==='announcement'? 'Listen to an announcement.' : 'Listen to part of a talk in a class.'), el('div',{class:'xpic'}, sc.act==='conversation'? '👥' : sc.act==='announcement'? '📢' : '🎓'), el('div',{class:'xprog'}, bar)); body.append(right);
+      if (!st.played[pk]){ nextB.disabled=true; TTS.speakTurns(examTurns(sc.act,sc.x),(i,n)=>{ bar.style.width=Math.round((i+1)/n*100)+'%'; }).then(()=>{ if (screens[st.idx]!==sc) return; st.played[pk]=1; save(); bar.style.width='100%'; nextB.disabled=false; }); } else { bar.style.width='100%'; right.append(el('div',{class:'xdir'}, 'Audio already played. Select Next.')); } }
+    else if (sc.kind==='lq'){ body.classList.add('one'); const q=sc.x.questions[sc.qi]; body.append(el('div',{class:'xq'}, el('div',{class:'xstem'}, q.stem), optsNode(sc,q))); }
+    wrap.scrollTop=0; };
+  const review=()=>{ TTS.stop(); body.innerHTML=''; body.className='xb one'; cnt.textContent='Review'; const tb=el('table',{class:'xrev'}, el('thead',{}, el('tr',{}, el('th',{},'Question'), el('th',{},'Status'))));
+    const tbd=el('tbody'); screens.forEach((sc,i)=>{ if (sc.kind==='audio') return; for (let k=0;k<sc.n;k++){ const done= sc.kind==='ctw'? !!(st.ans[sc.x.id+'|b'+k]||'').trim() : answered(sc); tbd.append(el('tr',{onclick:()=>{ st.idx=i; show(); }}, el('td',{}, String(sc.q0+k)), el('td',{class:done?'':'na'}, done?'Answered':'Not Answered'))); } });
+    tb.append(tbd); body.append(el('div',{class:'xq'}, el('div',{class:'xdir'}, 'Select a question to go to it. Select Return to continue.'), el('button',{class:'xbtn',type:'button',onclick:show,style:'margin-bottom:12px'}, 'Return'), tb)); };
+  nextB.onclick=()=>{ const sc=screens[st.idx]; if (S.name==='Listening' && sc && sc.kind!=='audio' && !answered(sc)){ toast('Select an answer first'); return; }
+    if (st.idx>=screens.length-1){ if (S.name==='Reading'){ const un=screens.filter(s=>s.kind!=='audio' && !answered(s)).length; if (un && !confirm(`${un}개 화면에 빈 답이 있어. 제출할까?`)) return; } finish(); return; } st.idx++; show(); };
+  backB.onclick=()=>{ if (st.idx>0){ st.idx--; show(); } }; revB.onclick=review;
+  exitB.onclick=()=>{ save(); stopT(); TTS.stop(); go('practice'); toast('진행 저장됨. 같은 시험을 다시 열면 이어서'); };
+  let done_=false;
+  const finish=()=>{ if (done_) return; done_=true; stopT(); TTS.stop(); const R2=store.get('exam_resume',{}); delete R2[o.key]; store.set('exam_resume',R2);
+    const per={}; let C=0,T=0; const typeAcc={};
+    o.items.forEach(({act,id})=>{ const x=findItem(act,id); if (!x) return; let c=0,t=0, ans=[];
+      if (act==='complete_words'){ const re=/([A-Za-z'-]+)\{([A-Za-z'-]+)\}/g; let m,k=0; const typed=[]; while((m=re.exec(x.text))){ const v=(st.ans[id+'|b'+k]||'').trim().toLowerCase(); typed.push(st.ans[id+'|b'+k]||''); const ok=v===m[2].toLowerCase() || v===(m[1]+m[2]).toLowerCase(); c+=ok?1:0; t++; k++; } ans=[typed]; try{ collectCtwMisses(x, typed); }catch(e){} }
+      else if (act==='choose_response'){ const a=st.ans[id+'|0']; c= a===x.answer?1:0; t=1; ans=[a]; }
+      else { x.questions.forEach((q,qi)=>{ const a=st.ans[id+'|'+qi]; c+= a===q.answer?1:0; t++; ans.push(a); }); }
+      per[id]={act,x,c,t,ans}; C+=c; T+=t; const ta=typeAcc[act]||(typeAcc[act]={c:0,t:0}); ta.c+=c; ta.t+=t;
+      LOG.add({type:act, id, c, t, sec:0, meta:{ans, exam:o.key}, date:today()}); });
+    const mins=Math.max(1, Math.round((secs-st.left)/60)); DAYS.addMinutes(mins); if (window.CUR_DRILL) CUR_DRILL.finished=true;
+    wrap.remove(); document.body.classList.remove('examing'); examResult({o, per, C, T, typeAcc, mins, S}); };
+  window.EXAM_CLEANUP=()=>{ stopT(); wrap.remove(); document.body.classList.remove('examing'); };
+  timeEl.textContent=fmtH(st.left); startT(); show(); if (saved) toast(`이어서 진행 · 남은 시간 ${fmt(st.left)}`);
+};
+function examResult({o, per, C, T, typeAcc, mins, S}){ topMeta(); const p=T? C/T : 0; const band=accToBand(p);
+  root.append(el('section',{class:'sec'}, el('div',{class:'summary'}, el('div',{class:'k'}, `${S.name} Section Complete`), el('div',{class:'big'}, `${C} / ${T}`), el('div',{class:'small'}, `${o.title||''} · 정답률 ${pct(p)} · 추정 밴드 ${band} · ${mins}분`))));
+  const tb=el('table',{class:'tbl'}, el('thead',{}, el('tr',{}, el('th',{},'유형'), el('th',{},'정답'), el('th',{},'정답률')))); const tbd=el('tbody');
+  Object.entries(typeAcc).forEach(([act,v])=>tbd.append(el('tr',{}, el('td',{}, ACT[act].name), el('td',{class:'n'}, `${v.c}/${v.t}`), el('td',{class:'n'}, pct(v.c/v.t))))); tb.append(tbd);
+  const weak=Object.entries(typeAcc).sort((a,b)=>a[1].c/a[1].t-b[1].c/b[1].t)[0];
+  root.append(el('section',{class:'sec'}, sectionHead('유형별 결과'), el('div',{class:'panel tblwrap'}, tb), weak && weak[1].c<weak[1].t? el('div',{class:'note',style:'margin-top:8px'}, `가장 약한 유형은 ${ACT[weak[0]].name} (${pct(weak[1].c/weak[1].t)}). 아래 해설을 보고 같은 유형 드릴 1세트를 이어서 풀면 좋아.`) : null,
+    el('div',{class:'row',style:'margin-top:10px'}, weak? el('button',{class:'btn',type:'button',onclick:()=>go('drill',{act:weak[0],count:1})}, `${ACT[weak[0]].name} 드릴`) : null, el('button',{class:'btn sec',type:'button',onclick:()=>go('practice')}, '연습으로'))));
+  const rv=el('section',{class:'sec'}, sectionHead('문제별 해설', el('span',{class:'small'}, '틀린 문제 먼저 확인'))); const L=['A','B','C','D'];
+  Object.values(per).forEach(({act,x,c,t,ans})=>{ const card=el('div',{class:'panel',style:'margin-bottom:12px'}); card.append(el('div',{class:'row'}, el('span',{class:'badge '+(c===t?'ok':c? 'warn':'ng')}, `${c}/${t}`), el('b',{style:'margin-left:6px'}, ACT[act].name), el('span',{class:'small',style:'margin-left:6px'}, x.title||x.topic||x.subject||x.kind||'')));
+    if (act==='complete_words'){ const re=/([A-Za-z'-]+)\{([A-Za-z'-]+)\}/g; let last=0,m,k=0; const pp=el('div',{class:'passage'}); while((m=re.exec(x.text))){ pp.append(x.text.slice(last,m.index)); const typed=(ans[0][k]||'').trim(); const ok=typed.toLowerCase()===m[2].toLowerCase()||typed.toLowerCase()===(m[1]+m[2]).toLowerCase(); pp.append(el('b',{style:`color:${ok?'var(--ok,#1a7f37)':'var(--ng,#c62828)'}`}, m[1]+m[2]), ok? '' : el('span',{class:'small'}, ` (내 답 ${m[1]}${typed||'_'})`)); last=m.index+m[0].length; k++; } pp.append(x.text.slice(last)); card.append(pp); try{ card.append(ctwNotesNode(x, ans[0])); }catch(e){} }
+    else { const qs= act==='choose_response'? [{stem:x.utterance, options:x.options, answer:x.answer, explain_ko:x.explain_ko}] : x.questions;
+      if (act!=='choose_response'){ const tr=el('details',{}, el('summary',{}, act==='daily_life'||act==='academic_reading'? '지문 보기' : '스크립트 보기')); if (x.text) String(x.text).split(/\n\s*\n/).forEach(par=>tr.append(el('p',{class:'small'}, par))); if (x.turns) x.turns.forEach(tu=>tr.append(el('p',{class:'small'}, `${tu.speaker}: ${tu.text}`))); card.append(tr); }
+      qs.forEach((q,qi)=>{ const a=ans[qi]; const ok=a===q.answer; card.append(el('div',{class:'q',style:'margin-top:10px'}, el('div',{class:'stem'}, `${ok?'✓':'✗'} ${q.stem}`),
+        el('div',{class:'small'}, `정답 (${L[q.answer]}) ${q.options[q.answer]}`), ok? null : el('div',{class:'small',style:'color:var(--ng,#c62828)'}, a==null? '내 답 없음' : `내 답 (${L[a]}) ${q.options[a]}`), q.explain_ko? el('div',{class:'explain'}, q.explain_ko) : null)); }); }
+    rv.append(card); });
+  root.append(rv); window.scrollTo(0,0); }
 
 /* ---------- views: vocab ---------- */
 VIEWS.vocab = (arg)=>{
