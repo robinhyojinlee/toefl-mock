@@ -756,7 +756,7 @@ async function prefetchAudio(keys){ if (PREFETCHING || !('caches' in window) || 
   await Promise.all([worker(),worker(),worker(),worker()]);
   const all=await c.keys(); if (all.length>900){ for (const r of all.slice(0, all.length-900)) await c.delete(r); } }catch(e){} PREFETCHING=false; }
 function prefetchToday(){ try{ const {blocks}=blocksFor(); const keys=new Set(); blocks.forEach(b=>{ const A=ACT[b.activity]; if (!A || !A.bank || !['listening','speaking'].includes(A.sec)) return; const n=+b.count||1; const sets=b.activity==='interview'? Math.ceil(n/4) : b.activity==='listen_repeat'? Math.ceil(n/7) : n; pickItems(b.activity, sets+2).forEach(it=>itemAudioKeys(it).forEach(k=>keys.add(k))); }); if (keys.size) setTimeout(()=>prefetchAudio(keys), 1500); }catch(e){} }
-const BUILD = '2026-11-08 15:26';
+const BUILD = '2026-11-08 15:47';
 const OFF_VER = 'def47259ee';
 try{ const sv=JSON.parse(localStorage.getItem('coach:settings')||'{}'); if (!sv.mig1206){ Object.assign(sv,{test1:'2026-12-06', test2:'', test3:'', registered:false, mig1206:true}); localStorage.setItem('coach:settings', JSON.stringify(sv)); } }catch(e){}
 
@@ -2330,42 +2330,62 @@ function toeicBack(x, noEx){
     (x.syn||[]).length? el('div',{class:'small',style:'margin-top:6px'}, '유의어 '+x.syn.join(', ')) : null,
     (x.col||[]).length? el('div',{class:'small'}, '함께 쓰는 말 '+x.col.join(', ')) : null);
 }
+// 말해보카식 객관식. 단계가 오를수록 어려운 유형: 예문 속 뜻 고르기 → 뜻 보고 단어 고르기 → (LC) 듣고 뜻 고르기 / (RC) 예문 빈칸
+function toeicDistract(x, key, n=3){ const used=new Set([toeicNorm(x[key])]); (x.syn||[]).forEach(s=>used.add(toeicNorm(s))); if (key==='ko') TOEIC.words.forEach(y=>{ if ((y.syn||[]).some(s=>toeicNorm(s)===toeicNorm(x.w))) used.add(toeicNorm(y.ko)); });
+  const pools=[TOEIC.words.filter(y=>y.pos===x.pos && y.part===x.part), TOEIC.words.filter(y=>y.pos===x.pos), TOEIC.words]; const out=[];
+  for (const P of pools){ for (const y of shuffle(P.slice())){ if (out.length>=n) break; const v=y[key]; if (!v || used.has(toeicNorm(v)) || (key==='w' && toeicNorm(y.ko)===toeicNorm(x.ko)) || (key==='ko' && (y.syn||[]).some(s=>toeicNorm(s)===toeicNorm(x.w)))) continue; used.add(toeicNorm(v)); out.push(v); } } return out; }
+function toeicNorm(s){ return String(s||'').toLowerCase().replace(/^(a|an|the)\s+/,'').trim(); }
+function toeicQuiz(x, box){
+  const mk=(kind, label, stem, key)=>{ const opts=shuffle([x[key], ...toeicDistract(x, key)]); return {kind, label, stem, opts, ans:opts.indexOf(x[key])}; };
+  const f=x.ex? findForm(x.ex, x.w) : null;
+  if (box>=3 && x.part==='LC') return mk('listen','듣고 뜻 고르기', el('div',{style:'text-align:center'}, el('button',{class:'btn ghost',type:'button',onclick:()=>TTS.speak(x.w,'W',{rate:.9})}, '🔊 다시 듣기')), 'ko');
+  if (box>=3 && f) return mk('blank','빈칸에 맞는 단어', el('div',{}, el('div',{class:'ex'}, x.ex.slice(0,f.i), el('b',{}, '_____'), x.ex.slice(f.i+f.t.length)), x.exko? el('div',{class:'small',style:'margin-top:4px'}, x.exko) : null), 'w');
+  if (box>=2) return mk('ko2w','뜻 보고 단어 고르기', el('div',{class:'word',style:'text-align:center;font-size:22px'}, x.ko), 'w');
+  return mk('ctx','예문 속 뜻 고르기', el('div',{}, el('div',{class:'word',style:'text-align:center'}, x.w), x.pr? el('div',{class:'small',style:'text-align:center'}, '발음 '+x.pr) : null, x.ex? el('div',{class:'ex',style:'margin-top:8px'}, hlWord(x.ex, x.w)) : null), 'ko');
+}
 function toeicLeft(S){ return S.order.filter(w=>TW[w] && !S.st[w]).length; }
 function toeicMore(){ const t=today(), s=TQ.ensureOrder(TQ.get()); const b=(s.bonus&&s.bonus.d===t)? (+s.bonus.n||0) : 0; s.bonus={d:t, n:b+T_CFG.more}; if (TQ.set(s)) go('toeic',{session:true}); }
 function moreBtn(S){ return toeicLeft(S)? el('button',{class:'btn sec',type:'button',onclick:toeicMore}, `새 단어 ${T_CFG.more}장 더`) : null; }
 function toeicNoteOfDay(t){ const ns=TOEIC.notes; if (!ns.length) return null; return ns[hashStr(t)%ns.length]; }
 function runToeic(host){
   const t=today(); let S=TQ.ensureOrder(TQ.get()); TQ.set(S);
-  const {queue}=toeicQueue(S,t); const q=queue.slice(); const first=new Set(); const again=new Set(); let i=0, ok=0, miss=0, kn=0; let undo=null;
+  const {queue}=toeicQueue(S,t); const q=queue.slice(); const first=new Set(); const again=new Set(); let i=0, ok=0, miss=0, kn=0, combo=0; let undo=null; const missed=[];
   if (!q.length){ host.append(el('div',{class:'note ok'}, '오늘 볼 토익 카드 없음. 내일 다시.')); return; }
   const prog=el('div',{class:'bar'}, el('i',{style:'width:0%'})); const hold=el('div',{class:'task'}); host.append(prog, hold);
   const finish=()=>{ document.onkeydown=null; hold.innerHTML=''; prog.firstChild.style.width='100%'; const n=toeicNoteOfDay(t);
-    hold.append(el('div',{class:'note ok'}, `토익 ${first.size}장 끝. 알았음 ${ok} · 몰랐음 ${miss} · 이미 앎 ${kn}. 몰랐던 단어는 내일 다시 나옴.`),
+    hold.append(el('div',{class:'note ok'}, `토익 ${first.size}장 끝. 정답 ${ok} · 오답 ${miss} · 이미 앎 ${kn}. 틀린 단어는 내일 다시 나옴.`),
+      missed.length? el('div',{class:'panel',style:'margin-top:12px'}, el('div',{class:'h5'}, '오늘 틀린 단어'), ...[...new Set(missed)].map(w=>el('div',{class:'small'}, el('b',{}, w), ' ', TW[w].ko))) : null,
       n? el('div',{class:'panel',style:'margin-top:12px'}, el('div',{class:'h5'}, '오늘의 노트 · '+n.h), el('p',{}, n.t)) : null,
       el('div',{class:'row task'}, moreBtn(S), el('button',{class:'btn ghost',type:'button',onclick:()=>go('toeic')}, '토익 탭으로'))); };
   const show=()=>{
     if (i>=q.length) return finish();
     const w=q[i], x=TW[w], isAgain=first.has(w); prog.firstChild.style.width=Math.round(i/q.length*100)+'%';
     if (!isAgain){ const nx=toeicShown(TQ.get(), w, t); if (!TQ.set(nx)) return; S=nx; }
-    const r=S.st[w]||{}; const back=el('div',{class:'hidden'}, toeicBack(x, true));
-    const meta=el('div',{class:'pos'}, T_BADGE(x), ' ', isAgain? '다시 보기 · 기록 안 바뀜' : r.last? `복습 · ${r.box||0}단계` : '새 단어');
-    const card=el('div',{class:'flash','data-srs':'toeic',style:'text-align:left;justify-content:flex-start'}, meta,
-      el('div',{class:'word',style:'text-align:center;margin:12px 0 4px'}, x.w),
-      x.pr? el('div',{class:'small',style:'text-align:center'}, '발음 '+x.pr) : null,
-      el('div',{class:'row',style:'justify-content:center'}, el('button',{class:'btn ghost sm',type:'button',onclick:()=>TTS.speak(x.w,'W',{rate:.9})}, '발음 듣기')),
-      x.ex? el('div',{class:'ex',style:'margin-top:8px'}, hlWord(x.ex, x.w)) : null);
-    const flip=el('button',{class:'btn',type:'button'}, '뜻 보기'), yes=el('button',{class:'btn hidden',type:'button'}, '알았음'), no=el('button',{class:'btn sec hidden',type:'button'}, '몰랐음');
-    const knownB=isAgain? null : el('button',{class:'btn ghost sm',type:'button'}, '이미 앎');
-    const grade=res=>{ if (today()!==t){ toast('날짜가 바뀌어 새 세션으로 시작'); go('toeic',{session:true}); return; } if (!isAgain){ const cur=TQ.get(); const before=JSON.parse(JSON.stringify(cur.st[w]||null)); const nx=toeicGrade(cur, w, res, t); if (!TQ.set(nx)) return; S=nx; undo={before, i, q:q.slice(), res, w}; first.add(w); if (res==='ok') ok++; else if (res==='miss') miss++; else kn++; }
+    const r=S.st[w]||{}; const Q=toeicQuiz(x, isAgain? 0 : (r.box||0)); let picked=false; const spoken=Q.kind==='listen' || (Q.kind==='ctx' && x.part==='LC' && S.autoTTS!==false);
+    const meta=el('div',{class:'pos'}, T_BADGE(x), ' ', isAgain? '다시 보기 · 기록 안 바뀜' : r.last? `복습 · ${r.box||0}단계` : '새 단어', ' · ', Q.label);
+    const stem=el('div',{style:'margin:12px 0 4px'}, Q.stem);
+    const back=el('div',{class:'hidden'}, toeicBack(x, Q.kind==='ctx'));
+    const next=el('button',{class:'btn hidden',type:'button',onclick:()=>{ i++; show(); }}, '다음');
+    const optsB=Q.opts.map((o,k)=>el('button',{class:'opt',type:'button',style:'width:100%;text-align:left;border:1.5px solid var(--bd-base);border-radius:12px;font:inherit;color:inherit',onclick:()=>pick(k)}, el('b',{}, (k+1)+''), el('span',{}, o)));
+    const knownB=isAgain? null : el('button',{class:'btn ghost sm',type:'button',onclick:()=>{ if (!picked){ picked=true; commit('known'); i++; show(); } }}, '이미 앎');
+    const commit=res=>{ if (today()!==t){ toast('날짜가 바뀌어 새 세션으로 시작'); go('toeic',{session:true}); return false; }
+      if (!isAgain){ const cur=TQ.get(); const before=JSON.parse(JSON.stringify(cur.st[w]||null)); const nx=toeicGrade(cur, w, res, t); if (!TQ.set(nx)) return false; S=nx; undo={before, i, q:q.slice(), res, w, combo}; first.add(w); if (res==='ok') ok++; else if (res==='miss'){ miss++; missed.push(w); } else kn++; }
       if (res==='miss' && !again.has(w) && !isAgain){ const at=Math.min(q.length, Math.max(i+1+T_CFG.gap, T_CFG.distinct)); if (at-i-1>=T_CFG.gap){ q.splice(at,0,w); again.add(w); } }
-      i++; show(); };
-    flip.onclick=()=>{ back.classList.remove('hidden'); flip.classList.add('hidden'); yes.classList.remove('hidden'); no.classList.remove('hidden'); yes.focus(); };
-    yes.onclick=()=>grade('ok'); no.onclick=()=>grade('miss'); if (knownB) knownB.onclick=()=>grade('known');
-    const undoB= undo && !isAgain? el('button',{class:'btn ghost sm',type:'button',onclick:()=>{ const u=undo; const s0=TQ.get(); if (u.before) s0.st[u.w]=u.before; else delete s0.st[u.w]; if (!TQ.set(s0)) return; undo=null; S=s0; q.length=0; u.q.forEach(z=>q.push(z)); i=u.i; first.delete(u.w); again.delete(u.w); if (u.res==='ok') ok--; else if (u.res==='miss') miss--; else kn--; toast('직전 카드 되돌림'); show(); }}, '‹ 직전 카드 다시') : null;
-    card.append(el('div',{class:'row',style:'justify-content:center;margin-top:12px'}, knownB, flip, no, yes), back);
-    hold.innerHTML=''; hold.append(card, el('div',{class:'row',style:'justify-content:space-between'}, undoB||el('span'), el('span',{class:'small'}, `${i+1} / ${q.length} · Space 뜻 보기 · 1 몰랐음 · 2 알았음`)));
-    document.onkeydown=e=>{ if (LK_OPEN || e.repeat || /INPUT|TEXTAREA/.test(e.target.tagName)) return; if (e.key===' ' && !flip.classList.contains('hidden')){ e.preventDefault(); flip.onclick(); } else if (e.key==='1' && flip.classList.contains('hidden')){ e.preventDefault(); no.onclick(); } else if (e.key==='2' && flip.classList.contains('hidden')){ e.preventDefault(); yes.onclick(); } };
-    if (x.part==='LC' && S.autoTTS!==false) TTS.speak(x.w,'W',{rate:.9});
+      return true; };
+    const pick=k=>{ if (picked) return; const right=k===Q.ans; if (!commit(right? 'ok':'miss')) return; picked=true;
+      optsB.forEach((b,j)=>{ b.disabled=true; if (j===Q.ans) b.classList.add('correct'); else if (j===k) b.classList.add('wrong'); });
+      combo=right? combo+1 : 0; beep(right? 880 : 220, right? 120 : 260); if (Q.kind==='listen' || Q.kind==='blank') stem.replaceChildren(el('div',{class:'word',style:'text-align:center'}, x.w), x.ex? el('div',{class:'ex',style:'margin-top:8px'}, hlWord(x.ex, x.w)) : '');
+      fb.textContent=right? (combo>=3? `정답 · ${combo}연속` : '정답') : '오답 · 정답은 초록색'; fb.style.color=right? 'var(--fg-success)' : 'var(--fg-error)';
+      if (knownB) knownB.classList.add('hidden'); back.classList.remove('hidden'); next.classList.remove('hidden'); next.focus();
+      if (S.autoTTS!==false && !spoken) TTS.speak(x.w,'W',{rate:.9}); };
+    const fb=el('div',{class:'small',style:'min-height:20px'});
+    const card=el('div',{class:'flash','data-srs':'toeic','data-w':w,style:'text-align:left;justify-content:flex-start'}, meta, stem, el('div',{}, ...optsB), el('div',{class:'row',style:'justify-content:space-between;align-items:center;margin-top:8px'}, fb, next), back,
+      el('div',{class:'row',style:'justify-content:center;margin-top:12px'}, knownB));
+    const undoB= undo && !isAgain? el('button',{class:'btn ghost sm',type:'button',onclick:()=>{ const u=undo; const s0=TQ.get(); if (u.before) s0.st[u.w]=u.before; else delete s0.st[u.w]; if (!TQ.set(s0)) return; undo=null; S=s0; q.length=0; u.q.forEach(z=>q.push(z)); i=u.i; first.delete(u.w); again.delete(u.w); combo=u.combo; if (u.res==='ok') ok--; else if (u.res==='miss'){ miss--; missed.pop(); } else kn--; toast('직전 카드 되돌림'); show(); }}, '‹ 직전 카드 다시') : null;
+    hold.innerHTML=''; hold.append(card, el('div',{class:'row',style:'justify-content:space-between'}, undoB||el('span'), el('span',{class:'small'}, `${i+1} / ${q.length} · 1~4 고르기 · Enter 다음`)));
+    document.onkeydown=e=>{ if (LK_OPEN || e.repeat || /INPUT|TEXTAREA/.test(e.target.tagName)) return; const n=+e.key;
+      if (!picked && n>=1 && n<=Q.opts.length){ e.preventDefault(); pick(n-1); } else if (picked && (e.key==='Enter' || e.key===' ') && e.target!==next){ e.preventDefault(); next.onclick(); } };
+    if (spoken) TTS.speak(x.w,'W',{rate:.9});
   };
   show();
 }
@@ -2381,7 +2401,7 @@ VIEWS.toeic = (arg)=>{
       el('div',{class:'stat'}, el('div',{class:'v'}, Math.max(1,Math.round(n*0.4))+'분'), el('div',{class:'l'}, '예상 시간'))),
     el('div',{class:'row task'}, el('button',{class:'btn',type:'button',disabled:!n||null,onclick:()=>go('toeic',{session:true})}, n? `${n}장 시작` : '오늘 분량 끝'), n? null : moreBtn(S),
       (()=>{ const c=el('input',{type:'checkbox'}); c.checked=S.autoTTS!==false; c.onchange=()=>{ const s=TQ.get(); s.autoTTS=c.checked; TQ.set(s); }; return el('label',{class:'small'}, c, ' LC 단어 자동 발음'); })()),
-    el('p',{class:'small'}, '하루 새 단어 20장 + 복습. 더 하고 싶으면 끝난 뒤 10장씩 추가. 같은 날 다시 열면 오늘 본 카드는 안 나옴. 처음 20장은 모두 다른 단어. 몰랐던 단어는 그 뒤에 한 번만 다시, 나머지는 내일.')));
+    el('p',{class:'small'}, '하루 새 단어 20장 + 복습. 더 하고 싶으면 끝난 뒤 10장씩 추가. 같은 날 다시 열면 오늘 본 카드는 안 나옴. 처음 20장은 모두 다른 단어. 단계가 오를수록 퀴즈가 어려워짐(예문 속 뜻 → 뜻 보고 단어 → 듣기 또는 빈칸). 틀린 단어는 그 뒤에 한 번만 다시, 나머지는 내일.')));
   root.append(el('section',{class:'sec'}, sectionHead('진도', el('span',{class:'small'}, `목표 ${T_CFG.goal} 전체 1회독 · D-${Math.max(0,diffDays(t,T_CFG.goal))}`)),
     el('div',{class:'stats'},
       el('div',{class:'stat'}, el('div',{class:'v'}, `${K.seen}/${K.total}`), el('div',{class:'l'}, '본 단어')),
