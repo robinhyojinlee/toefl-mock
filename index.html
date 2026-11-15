@@ -2279,74 +2279,241 @@ function libGuide(b){ const g=el('div',{class:'panel guide'}); g.append(document
 function libScenario(b){ const s=el('div',{class:'panel guide'}); s.innerHTML=PLAN.scenario_html||'<p>시나리오 없음</p>'; b.append(s); }
 
 /* ---------- boot ---------- */
-/* ---------- views: toeic (토익 라이팅 템플릿 암기, TOEFL 진도와 분리된 독립 SRS) ---------- */
+/* ---------- views: toeic (토익 라이팅: 템플릿·표현·단어 암기 SRS + 실전 연습, TOEFL 진도와 분리) ---------- */
+const TW_GUIDE = [
+  {h:'시험 구성과 채점', t:[
+    '총 8문항 60분, 0~200점(10점 단위). 원점수 Q1~5 각 0~3 · Q6~7 각 0~4 · Q8 0~5, 합 28점을 환산',
+    '170~200: 모든 문항 성공 · 140~160: 의견 글은 약하지만 정보 전달과 문장은 성공 · 90~130: 의견 뒷받침이 제한적',
+    'Q1~5 채점 = 문법 + 사진과의 연관성 · Q6~7 = 문장 질과 다양성, 어휘, 구성 · Q8 = 이유·예시 뒷받침, 문법, 어휘, 구성',
+    '고득점 핵심은 화려한 표현이 아니라 감점 요소를 없애는 것: 지시문 과제 누락, 관사·수일치, 300단어 미달']},
+  {h:'시간 배분', t:[
+    'Q1~5: 다섯 문제 합쳐 8분. 문제당 1분 20초, 남는 1분 20초는 전체 검토. 문항끼리 왔다 갔다 가능',
+    'Q6, Q7: 각 10분, 따로 진행되고 Q7로 넘어가면 Q6로 못 돌아감. 지시문 읽기 1분 · 작성 7분 · 검토 2분',
+    'Q8: 30분. 구상 3~5분 · 작성 20~22분 · 검토 3분. 화면 오른쪽 위 단어 수 표시 버튼으로 300단어 확인']},
+  {h:'Q1~5 사진 한 문장 요령', t:[
+    '반드시 ONE sentence. 두 문장 쓰면 지시 위반',
+    '주어진 단어 2개 모두 사용. 형태는 바꿔도 됨(walk → walking, chair → chairs), 순서 자유',
+    '사진에 보이는 것만. 추측(아마 회의 중이다)보다 보이는 동작 + 위치가 안전',
+    '사람 있으면 [사람] is/are [V-ing] [목적어] [위치] 한 틀로 거의 다 해결',
+    '주어진 단어가 접속사(while, because, so, after, when)면 절 두 개를 붙이는 틀을 그대로 사용',
+    '감점 1순위: 관사(a/the) 빠짐, 단수·복수 수일치(a man is / two men are), 마침표 누락, 첫 글자 소문자',
+    '길게 쓸수록 실수 확률만 올라감. 8~12단어면 충분']},
+  {h:'Q6~7 이메일 요령', t:[
+    '지시문 마지막 줄이 채점 기준. ask TWO questions and make ONE request 같은 개수를 그대로 채우기',
+    '과제마다 First, Second, Also, In addition 으로 표시해서 채점자가 바로 셀 수 있게',
+    '질문은 반드시 물음표로 끝나는 의문문 형태. 요청은 Could you please ~? / I would appreciate it if you could ~.',
+    '역할 확인: 내가 고객인지 직원인지, 받는 사람이 누구인지 먼저 파악',
+    '구체적으로: 날짜, 시간, 장소, 숫자를 넣으면 막연한 답보다 점수가 높음 (sometime next week 대신 on Thursday at 2 p.m.)',
+    '같은 단어 반복 피하기. ask를 세 번 쓰지 말고 would like to know, could you let me know, I was wondering if 로 돌려 쓰기',
+    '반말·명령조 금지(ASAP, Hey). 기본틀은 외워 두되 상황 문장은 짧고 정확하게']},
+  {h:'Q8 에세이 요령', t:[
+    '300단어 이상. 템플릿 약 150단어 + 이유 2개와 예시로 150단어 이상',
+    '구조: 서론(의견) → 본론1(이유 + 예시) → 본론2(이유 + 예시) → 반론 인정과 반박 → 결론',
+    '첫 문단에서 입장을 분명히. 양쪽 다 좋다는 식의 애매한 입장은 감점',
+    '예시는 내 경험(when I was working at ~) 또는 그럴듯한 조사 결과(according to a recent survey, about 70 percent of ~) 둘 중 하나',
+    '만능 이유를 미리 외워 두기: 시간 절약, 비용 절약, 생산성, 건강과 스트레스, 소통, 경험과 기술. 거의 모든 주제에 붙음',
+    '타자 중 Insert 키를 누르면 덮어쓰기 모드가 됨. 다시 누르면 해제',
+    '마지막 3분은 관사, 수일치, 시제, 철자 확인']},
+  {h:'시험 직전 체크리스트', t:[
+    '문장 첫 글자 대문자, 끝 마침표',
+    'a/an/the 빠진 명사 없는지',
+    '주어와 동사 수일치 (people are, everyone is)',
+    'Q1~5 주어진 두 단어 모두 들어갔는지',
+    'Q6~7 과제 개수 다 채웠는지',
+    'Q8 300단어 넘었는지',
+    '자주 틀리는 철자: receive, necessary, convenient, schedule, available, recommend']}
+];
 const TWT = [
-  {id:'q15', title:'Q1~5 사진 보고 한 문장', meta:'5문항 8분 · 주어진 단어 2개 모두 사용', tips:[
-    '두 단어 다 넣기. 형태 변형 가능(walk → walking), 순서 자유',
-    '한 문장이면 충분. 길게 쓰다 문법 틀리면 감점',
-    '사진과 안 맞는 내용 금지. 사람 있으면 사람 + 진행형이 가장 안전',
-    '접속사 단어(while, because, so, after)가 나오면 아래 틀에 그대로 끼우기'],
-   lines:[
-    {k:'q15-1', en:'[A man] is [V-ing] [a N] [next to / in front of / on] [the N].', ko:'기본틀: 사람 + 진행형 + 사물 + 위치'},
-    {k:'q15-2', en:'There are [some N] [on / in] [the N].', ko:'사람 없을 때: 사물 + 위치'},
-    {k:'q15-3', en:'[The N] has been placed [on the N].', ko:'사물이 놓여 있음 (수동 완료)'},
-    {k:'q15-4', en:'[A woman] is [V-ing] while [a man] is [V-ing].', ko:'while: 동시에 두 사람'},
-    {k:'q15-5', en:'Because [it is sunny], [people] are [V-ing] [outside].', ko:'because: 이유 + 결과'},
-    {k:'q15-6', en:'[The man] is [V-ing], so [he] [V] [N].', ko:'so: 그래서'},
-    {k:'q15-7', en:'[The woman] is [V-ing] in order to [V].', ko:'in order to: 목적'},
-    {k:'q15-8', en:'[They] are [V-ing] after [V-ing / S + V].', ko:'after / before: 순서'}]},
-  {id:'mail', title:'Q6~7 이메일 답장 기본틀', meta:'2문항 각 10분 · 지시문 과제 개수 정확히', tips:[
-    '지시문에 적힌 과제(예: 질문 2개 + 요청 1개)를 개수 그대로 채우기. 하나라도 빠지면 감점',
-    'First, Second, Also 로 과제마다 표시해서 채점자가 바로 세게 하기',
-    '구상 1분 · 작성 8분 · 검토 1분'],
-   lines:[
-    {k:'mail-1', en:'Dear [Mr. Kim],', ko:'호칭'},
+  {id:'q15', part:'Q1~5', title:'사진 문장 기본틀', meta:'두 단어 넣는 뼈대', lines:[
+    {k:'q15-1', en:'[A man] is [V-ing] [a N] [next to] [the N].', ko:'사람 + 진행형 + 사물 + 위치'},
+    {k:'q15-2', en:'[Two women] are [V-ing] [together] [at the table].', ko:'여러 사람: are + 진행형'},
+    {k:'q15-3', en:'There are [some N] [on] [the N].', ko:'사람 없을 때: 사물 + 위치'},
+    {k:'q15-4', en:'[Some N] are displayed [on the shelves].', ko:'진열되어 있음 (수동)'},
+    {k:'q15-5', en:'[The N] has been placed [on the N].', ko:'놓여 있음 (현재완료 수동)'},
+    {k:'q15-6', en:'[A woman] is [V-ing] while [a man] is [V-ing].', ko:'while: 동시에 두 동작'},
+    {k:'q15-7', en:'Because [it is raining], [people] are [V-ing].', ko:'because: 이유 + 결과'},
+    {k:'q15-8', en:'[The man] is [V-ing], so [he] [is V-ing / V].', ko:'so: 그래서'},
+    {k:'q15-9', en:'[The woman] is [V-ing] in order to [V].', ko:'in order to: 목적'},
+    {k:'q15-10', en:'After [V-ing], [they] are [V-ing].', ko:'after + V-ing: 순서 (끝낸 흔적이 보일 때만)'},
+    {k:'q15-11', en:'When [S + V], [S] [V].', ko:'when: ~할 때'},
+    {k:'q15-12', en:'[The man] is [V-ing] so that [he] can [V].', ko:'so that ~ can: ~할 수 있도록'},
+    {k:'q15-13', en:'[A man] [wearing a jacket] is [V-ing].', ko:'분사로 사람 꾸미기: 재킷 입은 남자'},
+    {k:'q15-14', en:'[The man] [holding the N] is [V-ing] [위치].', ko:'주어에 분사 붙여 길이 늘리기'}]},
+  {id:'q15v', part:'Q1~5', title:'사진 단골 동작·위치 표현', meta:'사진에 바로 쓰는 덩어리', lines:[
+    {k:'q15v-1', en:'is holding a cup of coffee', ko:'커피 한 잔을 들고 있다'},
+    {k:'q15v-2', en:'is talking on the phone', ko:'통화하고 있다'},
+    {k:'q15v-3', en:'are sitting around a table', ko:'테이블에 둘러앉아 있다'},
+    {k:'q15v-4', en:'are waiting in line', ko:'줄 서서 기다리고 있다'},
+    {k:'q15v-5', en:'is looking at a computer monitor', ko:'컴퓨터 모니터를 보고 있다'},
+    {k:'q15v-6', en:'is typing on a keyboard', ko:'키보드로 타이핑하고 있다'},
+    {k:'q15v-7', en:'are walking along the street', ko:'길을 따라 걷고 있다'},
+    {k:'q15v-8', en:'is crossing the street', ko:'길을 건너고 있다'},
+    {k:'q15v-9', en:'are shaking hands', ko:'악수하고 있다'},
+    {k:'q15v-10', en:'is giving a presentation', ko:'발표하고 있다'},
+    {k:'q15v-11', en:'is pushing a shopping cart', ko:'쇼핑 카트를 밀고 있다'},
+    {k:'q15v-12', en:'is carrying a box', ko:'상자를 나르고 있다'},
+    {k:'q15v-13', en:'is reaching for an item on the shelf', ko:'선반 위 물건에 손을 뻗고 있다'},
+    {k:'q15v-14', en:'is reading a document', ko:'서류를 읽고 있다'},
+    {k:'q15v-15', en:'is writing something in a notebook', ko:'공책에 뭔가 적고 있다'},
+    {k:'q15v-16', en:'is wearing a hat', ko:'모자를 쓰고 있다 (상태)'},
+    {k:'q15v-17', en:'are having a conversation', ko:'대화를 나누고 있다'},
+    {k:'q15v-18', en:'is paying for groceries', ko:'식료품 값을 계산하고 있다'},
+    {k:'q15v-19', en:'is getting on a bus', ko:'버스에 타고 있다'},
+    {k:'q15v-20', en:'is riding a bicycle', ko:'자전거를 타고 있다'},
+    {k:'q15v-21', en:'is parked next to the building', ko:'건물 옆에 주차되어 있다'},
+    {k:'q15v-29', en:'is pointing at the screen', ko:'화면을 가리키고 있다'},
+    {k:'q15v-30', en:'is handing a document to a colleague', ko:'동료에게 서류를 건네고 있다'},
+    {k:'q15v-22', en:'in front of the store', ko:'가게 앞에'},
+    {k:'q15v-23', en:'in the middle of the room', ko:'방 한가운데'},
+    {k:'q15v-24', en:'on the left side of the picture', ko:'사진 왼쪽에'},
+    {k:'q15v-25', en:'behind the counter', ko:'카운터 뒤에'},
+    {k:'q15v-26', en:'across from each other', ko:'서로 마주 보고'},
+    {k:'q15v-27', en:'near the window', ko:'창가 근처에'},
+    {k:'q15v-28', en:'under the tree', ko:'나무 아래에'}]},
+  {id:'mail', part:'Q6~7', title:'이메일 기본틀', meta:'처음부터 끝까지 순서대로', lines:[
+    {k:'mail-1', en:'Dear [Mr. Kim],', ko:'호칭 (이름 모르면 Dear Sir or Madam,)'},
     {k:'mail-2', en:'Thank you for your e-mail about [topic].', ko:'[주제] 관련 메일 감사'},
-    {k:'mail-3', en:'I am writing to [ask a few questions / give you some information] about [topic].', ko:'메일 쓰는 목적'},
+    {k:'mail-3', en:'I am writing in response to your e-mail regarding [topic].', ko:'목적: ~에 관한 메일에 답장 드림'},
     {k:'mail-4', en:'First, I would like to know [what time the event starts].', ko:'첫째 질문: ~가 알고 싶음'},
     {k:'mail-5', en:'Second, could you let me know whether [S + V]?', ko:'둘째 질문: ~인지 알려줄 수 있나'},
     {k:'mail-6', en:'Also, I would appreciate it if you could [V].', ko:'요청: ~해 주면 감사'},
-    {k:'mail-7', en:'In addition, I suggest that you [V], because [reason].', ko:'제안: ~하기를 제안, 이유는'},
-    {k:'mail-8', en:'Please let me know if you need any further information.', ko:'더 필요한 정보 있으면 알려 달라'},
-    {k:'mail-9', en:'I look forward to hearing from you soon.', ko:'곧 답장 기다림'},
-    {k:'mail-10', en:'Best regards, [Your name]', ko:'맺음말 + 이름'}]},
-  {id:'mail2', title:'Q6~7 과제별 바꿔 끼우기', meta:'지시문 과제 유형에 맞춰 교체', tips:[
-    '지시문 동사 보고 고르기: ask = 질문, request = 요청, suggest/recommend = 제안, give information = 정보, describe a problem = 문제'],
-   lines:[
+    {k:'mail-7', en:'In addition, I suggest that you [V] because [reason].', ko:'제안: ~하기를 제안, 이유는'},
+    {k:'mail-8', en:'Please let me know if you have any questions or need any further information.', ko:'질문이나 추가 정보 필요하면 알려 달라'},
+    {k:'mail-9', en:'Thank you in advance for your prompt attention to this matter.', ko:'빠른 처리 미리 감사'},
+    {k:'mail-10', en:'I look forward to hearing from you soon.', ko:'곧 답장 기다림'},
+    {k:'mail-11', en:'Sincerely,', ko:'맺음말 (다음 줄에 이름)'}]},
+  {id:'mail2', part:'Q6~7', title:'과제별 바꿔 끼우기', meta:'질문 · 요청 · 제안 · 정보 · 문제', lines:[
     {k:'mail2-1', en:'I was wondering if [S + V].', ko:'질문 (공손): ~인지 궁금함'},
-    {k:'mail2-2', en:'Would it be possible to [V]?', ko:'요청: ~하는 것이 가능한지'},
-    {k:'mail2-3', en:'Could you please send me [N] by [Friday]?', ko:'요청: 기한까지 ~ 보내 달라'},
-    {k:'mail2-4', en:'It might be a good idea to [V].', ko:'제안: ~하면 좋을 것 같음'},
-    {k:'mail2-5', en:'I would like to let you know that [S + V].', ko:'정보 주기: ~임을 알려 드림'},
-    {k:'mail2-6', en:'Please note that [S + V].', ko:'정보 주기: ~ 참고 바람'},
-    {k:'mail2-7', en:'Unfortunately, I have a problem with [N].', ko:'문제 설명: 안타깝게도 ~에 문제'},
-    {k:'mail2-8', en:'I am glad to hear that [S + V].', ko:'반응: ~라니 기쁨'}]},
-  {id:'essay', title:'Q8 의견 에세이', meta:'1문항 30분 · 300단어 이상', tips:[
-    '구상 5분 · 작성 22분 · 검토 3분',
-    '이유 2개 + 각각 구체 예시(내 경험 또는 가상의 통계)',
-    '템플릿만 약 150단어. 이유와 예시로 150단어 이상 채우면 300 넘음',
-    '양자택일 문제면 Some people think ~ while others ~ 에 두 선택지를 그대로 넣기'],
-   lines:[
+    {k:'mail2-2', en:'Could you tell me how much [the fee] is?', ko:'질문: 비용이 얼마인지'},
+    {k:'mail2-3', en:'Is there any parking available near [the venue]?', ko:'질문: 근처 주차 가능한지'},
+    {k:'mail2-4', en:'Will [lunch] be provided during [the event]?', ko:'질문: 점심 제공되는지'},
+    {k:'mail2-5', en:'Do I need to bring anything for [the session]?', ko:'질문: 챙겨 갈 것 있는지'},
+    {k:'mail2-6', en:'Would it be possible to [change my reservation to Friday]?', ko:'요청: ~하는 것이 가능한지'},
+    {k:'mail2-7', en:'Could you please send me [a brochure] by [Friday]?', ko:'요청: 기한까지 ~ 보내 달라'},
+    {k:'mail2-8', en:'Would you mind [V-ing]?', ko:'요청: ~해 주실 수 있나'},
+    {k:'mail2-9', en:'It might be a good idea to [V].', ko:'제안: ~하면 좋을 것 같음'},
+    {k:'mail2-10', en:'I would recommend [V-ing] because [reason].', ko:'제안: ~하기를 추천, 이유는'},
+    {k:'mail2-11', en:'How about [V-ing] [on Thursday at 2 p.m.]?', ko:'제안: 구체적 시간 넣어 ~ 어때'},
+    {k:'mail2-12', en:'I would like to let you know that [S + V].', ko:'정보: ~임을 알려 드림'},
+    {k:'mail2-13', en:'Please note that [S + V].', ko:'정보: ~ 참고 바람'},
+    {k:'mail2-14', en:'[The event] will be held in [Conference Room B] on [May 3].', ko:'정보: 장소·날짜 안내'},
+    {k:'mail2-15', en:'Unfortunately, I have been having a problem with [N].', ko:'문제 설명: ~에 계속 문제가 있음'},
+    {k:'mail2-16', en:'This is because [cause].', ko:'문제 원인 설명'},
+    {k:'mail2-17', en:'To solve this problem, we will [V] by [Friday].', ko:'해결책 + 기한'},
+    {k:'mail2-18', en:'We apologize for any inconvenience this may have caused.', ko:'불편 사과 (직원 역할일 때)'},
+    {k:'mail2-21', en:'Could you please confirm whether [S + V]?', ko:'확인 요청: ~인지 확인해 달라'},
+    {k:'mail2-22', en:'Unfortunately, I will not be able to attend [the meeting] because of [reason].', ko:'불참 통보: ~때문에 참석 못 함'},
+    {k:'mail2-23', en:'Please find the attached [document].', ko:'첨부한 ~ 확인 바람'},
+    {k:'mail2-19', en:'I am pleased to hear that [S + V].', ko:'반응: ~라니 기쁨'},
+    {k:'mail2-20', en:'I would be happy to [V].', ko:'수락: 기꺼이 ~하겠음'}]},
+  {id:'essay', part:'Q8', title:'에세이 템플릿', meta:'서론 · 본론 둘 · 반론 · 결론', lines:[
     {k:'essay-1', en:'These days, [topic] has become an important issue.', ko:'서론: 요즘 [주제]가 중요한 문제'},
     {k:'essay-2', en:'Some people think that [A], while others believe that [B].', ko:'서론: 어떤 사람은 A, 다른 사람은 B'},
-    {k:'essay-3', en:'Personally, I believe that [opinion] for the following two reasons.', ko:'서론: 내 의견, 이유 두 가지'},
+    {k:'essay-3', en:'Personally, I strongly believe that [opinion] for the following two reasons.', ko:'서론: 내 의견, 이유 두 가지'},
     {k:'essay-4', en:'First of all, [reason 1].', ko:'본론1: 첫째 이유'},
     {k:'essay-5', en:'To be more specific, [explanation].', ko:'본론1: 구체적으로 말하면'},
-    {k:'essay-6', en:'For example, when I was [a university student], [experience].', ko:'본론1: 예시, 내가 ~였을 때'},
+    {k:'essay-6', en:'For example, when I was [working at a small company], [experience].', ko:'본론1: 예시, 내가 ~였을 때'},
     {k:'essay-7', en:'As a result, [result].', ko:'본론1: 그 결과'},
     {k:'essay-8', en:'Therefore, it is clear that [reason 1].', ko:'본론1: 따라서 ~는 분명함'},
     {k:'essay-9', en:'Secondly, [reason 2].', ko:'본론2: 둘째 이유'},
     {k:'essay-10', en:'This is because [explanation].', ko:'본론2: 왜냐하면'},
-    {k:'essay-11', en:'For instance, according to a recent survey, [fact].', ko:'본론2: 예시, 최근 조사에 따르면'},
+    {k:'essay-11', en:'For instance, according to a recent survey, about [70] percent of [N] said that [S + V].', ko:'본론2: 예시, 최근 조사에 따르면 약 70%가'},
     {k:'essay-12', en:'This shows that [point].', ko:'본론2: 이것이 보여 주는 것'},
-    {k:'essay-13', en:'Of course, some people may argue that [opposite view].', ko:'반론 인정: 물론 ~라고 할 수도'},
+    {k:'essay-13', en:'Admittedly, some people may argue that [opposite view].', ko:'반론 인정: 물론 ~라고 할 수도'},
     {k:'essay-14', en:'However, [rebuttal].', ko:'반박: 하지만'},
     {k:'essay-15', en:'In conclusion, I strongly believe that [opinion].', ko:'결론: 결론적으로 강하게 믿음'},
-    {k:'essay-16', en:'This is because [reason 1] and [reason 2].', ko:'결론: 이유 1과 2 때문'}]}
+    {k:'essay-16', en:'This is because [reason 1] and [reason 2].', ko:'결론: 이유 1과 2 때문'}]},
+  {id:'reason', part:'Q8', title:'만능 이유 문장', meta:'거의 모든 주제에 붙는 이유', lines:[
+    {k:'reason-1', en:'It can save a lot of time and money.', ko:'시간과 돈을 많이 아낄 수 있음'},
+    {k:'reason-2', en:'It allows people to work more efficiently.', ko:'더 효율적으로 일하게 해 줌'},
+    {k:'reason-3', en:'It helps employees improve their productivity.', ko:'직원 생산성 향상에 도움'},
+    {k:'reason-4', en:'It can reduce stress and improve our health.', ko:'스트레스를 줄이고 건강을 개선'},
+    {k:'reason-5', en:'It gives people a chance to gain practical experience.', ko:'실무 경험을 쌓을 기회'},
+    {k:'reason-6', en:'It helps people develop important skills such as [communication].', ko:'소통 같은 중요한 기술을 기름'},
+    {k:'reason-7', en:'It makes communication between team members much easier.', ko:'팀원 간 소통이 훨씬 쉬워짐'},
+    {k:'reason-8', en:'People can get information quickly and conveniently.', ko:'정보를 빠르고 편리하게 얻음'},
+    {k:'reason-9', en:'It is beneficial for both companies and employees.', ko:'회사와 직원 모두에게 이로움'},
+    {k:'reason-10', en:'It can help people build good relationships with others.', ko:'다른 사람과 좋은 관계를 쌓게 해 줌'},
+    {k:'reason-11', en:'It plays an important role in [career development].', ko:'~에서 중요한 역할을 함'},
+    {k:'reason-12', en:'In the long run, it will lead to better results.', ko:'장기적으로 더 좋은 결과로 이어짐'}]},
+  {id:'ex', part:'Q8', title:'예시·근거 만들기', meta:'이유를 길게 늘리는 문장', lines:[
+    {k:'ex-1', en:'For example, when I was a university student, I [V-ed].', ko:'예시: 대학생 때 나는 ~했다'},
+    {k:'ex-2', en:'In my case, I used to [V], but now I [V].', ko:'내 경우: 예전엔 ~했지만 지금은'},
+    {k:'ex-3', en:'Thanks to [N], I was able to [V].', ko:'~덕분에 ~할 수 있었다'},
+    {k:'ex-4', en:'If I had not [p.p.], I would not have [p.p.].', ko:'가정: ~하지 않았다면 ~못 했을 것'},
+    {k:'ex-5', en:'According to a recent study, [S + V].', ko:'근거: 최근 연구에 따르면'},
+    {k:'ex-6', en:'Many experts say that [S + V].', ko:'근거: 많은 전문가가 말하길'},
+    {k:'ex-7', en:'This experience taught me that [S + V].', ko:'이 경험으로 ~을 배웠다'},
+    {k:'ex-8', en:'As a result, I was able to finish the project ahead of schedule.', ko:'그 결과 프로젝트를 일정보다 일찍 끝냄'}]},
+  {id:'link', part:'Q8', title:'의견·연결 표현', meta:'반복 피하기용', lines:[
+    {k:'link-1', en:'From my point of view,', ko:'내 관점에서는'},
+    {k:'link-2', en:'It is my belief that [S + V].', ko:'~라는 것이 내 믿음'},
+    {k:'link-3', en:'The main reason for this is that [S + V].', ko:'주된 이유는'},
+    {k:'link-4', en:'Another important reason is that [S + V].', ko:'또 다른 중요한 이유는'},
+    {k:'link-5', en:'Moreover,', ko:'게다가'},
+    {k:'link-6', en:'On the other hand,', ko:'반면에'},
+    {k:'link-7', en:'In other words,', ko:'다시 말해'},
+    {k:'link-8', en:'For these reasons,', ko:'이런 이유로'},
+    {k:'link-9', en:'It is true that [S + V], but [S + V].', ko:'~는 사실이지만 ~'},
+    {k:'link-11', en:'Although [S + V], [S + V].', ko:'비록 ~지만 (양보절)'},
+    {k:'link-10', en:'There is no doubt that [S + V].', ko:'~는 의심의 여지가 없음'}]},
+  {id:'voc', part:'단어', title:'꼭 외울 단어', meta:'이메일·에세이 공용', lines:[
+    {k:'voc-1', en:'beneficial', ko:'이로운'},
+    {k:'voc-2', en:'efficient', ko:'효율적인'},
+    {k:'voc-3', en:'productivity', ko:'생산성'},
+    {k:'voc-4', en:'convenient', ko:'편리한'},
+    {k:'voc-5', en:'flexible', ko:'유연한'},
+    {k:'voc-6', en:'essential', ko:'필수적인'},
+    {k:'voc-7', en:'improve', ko:'개선하다'},
+    {k:'voc-8', en:'enhance', ko:'향상시키다'},
+    {k:'voc-9', en:'reduce', ko:'줄이다'},
+    {k:'voc-10', en:'experience', ko:'경험'},
+    {k:'voc-11', en:'opportunity', ko:'기회'},
+    {k:'voc-12', en:'environment', ko:'환경'},
+    {k:'voc-13', en:'colleague', ko:'동료'},
+    {k:'voc-14', en:'employee', ko:'직원'},
+    {k:'voc-15', en:'customer', ko:'고객'},
+    {k:'voc-16', en:'available', ko:'이용 가능한, 시간이 되는'},
+    {k:'voc-17', en:'confirm', ko:'확인하다, 확정하다'},
+    {k:'voc-18', en:'schedule', ko:'일정'},
+    {k:'voc-19', en:'deadline', ko:'마감일'},
+    {k:'voc-20', en:'budget', ko:'예산'},
+    {k:'voc-21', en:'reservation', ko:'예약'},
+    {k:'voc-22', en:'refund', ko:'환불'},
+    {k:'voc-23', en:'inquiry', ko:'문의'},
+    {k:'voc-24', en:'attend', ko:'참석하다'},
+    {k:'voc-25', en:'register for', ko:'~에 등록하다'},
+    {k:'voc-26', en:'recommend', ko:'추천하다'},
+    {k:'voc-27', en:'necessary', ko:'필요한'},
+    {k:'voc-28', en:'receive', ko:'받다'},
+    {k:'voc-29', en:'inconvenience', ko:'불편'},
+    {k:'voc-30', en:'appreciate', ko:'감사하다'},
+    {k:'voc-31', en:'regarding', ko:'~에 관하여'},
+    {k:'voc-32', en:'in advance', ko:'미리'},
+    {k:'voc-33', en:'as soon as possible', ko:'가능한 한 빨리'},
+    {k:'voc-34', en:'take part in', ko:'참여하다'},
+    {k:'voc-35', en:'deal with', ko:'처리하다'},
+    {k:'voc-37', en:'attachment', ko:'첨부 파일'},
+    {k:'voc-38', en:'reschedule', ko:'일정을 변경하다'},
+    {k:'voc-39', en:'postpone', ko:'연기하다'},
+    {k:'voc-36', en:'be responsible for', ko:'~을 책임지다'}]}
 ];
+const TW_PRAC = [
+  {type:'mail', min:10, from:'Lisa Park, Event Coordinator', subj:'Annual Marketing Conference', body:'Thank you for registering for our annual marketing conference next month. We are happy to answer any questions you may have before the event.', task:'As a registered participant, respond to the e-mail. In your e-mail, ask TWO questions and make ONE request.'},
+  {type:'mail', min:10, from:'David Lee, Office Manager', subj:'Office Move', body:'As you know, our team will move to the new building on the 15th. I would like to hear your ideas to make the move go smoothly.', task:'Respond to the e-mail as a team member. In your e-mail, make TWO suggestions and ask ONE question.'},
+  {type:'mail', min:10, from:'Green Fitness Center', subj:'Membership Renewal', body:'Your membership will expire at the end of this month. Please let us know if you would like to renew it or if you have any concerns.', task:'Respond to the e-mail as a member. In your e-mail, describe ONE problem you had and make TWO requests.'},
+  {type:'mail', min:10, from:'Kevin Choi, Customer', subj:'Late Delivery', body:'I ordered three office chairs from your store two weeks ago, but they have not arrived yet. This is causing problems for my team.', task:'Respond to the e-mail as a customer service manager. In your e-mail, explain why the problem happened and offer TWO solutions.'},
+  {type:'essay', min:30, q:'Do you agree or disagree with the following statement? Working from home is more productive than working in an office. Give specific reasons and examples to support your opinion.'},
+  {type:'essay', min:30, q:'Some people prefer to work for a large company, while others prefer to work for a small company. Which do you prefer and why? Give specific reasons and examples.'},
+  {type:'essay', min:30, q:'Do you agree or disagree? Companies should provide training programs for new employees. Use specific reasons and examples to support your answer.'},
+  {type:'essay', min:30, q:'What is the most important quality for a good manager? Choose one of the following: communication skills, experience, or decision-making ability. Give reasons and examples.'},
+  {type:'essay', min:30, q:'Do you agree or disagree with the following statement? Technology has made people less social. Give specific reasons and examples.'},
+  {type:'essay', min:30, q:'Some people think that students should get part-time jobs while they are in school. Do you agree or disagree? Give specific reasons and examples.'}
+];
+
 const TWL = {}; TWT.forEach(g=>g.lines.forEach(x=>{ x.g=g.id; TWL[x.k]=x; }));
 const W_INT=[1,2,4,7,14];                   // box 1..5 다음 간격(일)
-const W_NEW=10;                              // 하루 새 문장 수
+const W_NEW=15;                              // 하루 새 카드 수 (+ 더 하기 10장씩)
 const WQ = {
   get(){ const s=Object.assign({st:{}}, store.get('twrite',{})); if (!s.st || typeof s.st!=='object' || Array.isArray(s.st)) s.st={}; return s; },
   set(v){ return store.set('twrite', v)!==false; }
@@ -2357,28 +2524,31 @@ function twHint(en){ return twTokens(en).map(w=> w[0]==='['? w : w.replace(/([A-
 function twWords(s){ return String(s||'').replace(/\[[^\]]*\]/g,' ').toLowerCase().match(/[a-z']+/g)||[]; }
 function twScore(target, typed){ const T=twWords(target), U=twWords(typed); if (!T.length) return {pct:100, miss:[]}; const pool=U.slice(); const miss=[]; let hit=0;
   T.forEach(w=>{ const j=pool.indexOf(w); if (j>=0){ hit++; pool.splice(j,1); } else miss.push(w); }); return {pct:Math.round(hit/T.length*100), miss}; }
-function twPlan(S, t, gid){ const keys=Object.keys(TWL).filter(k=>!gid || TWL[k].g===gid);
+// 새 카드는 묶음끼리 번갈아 (묶음 안에서는 순서대로) 나와서 하루에 파트가 섞임
+const TW_ORDER=(()=>{ const qs=TWT.map(g=>g.lines.map(x=>x.k)); const out=[]; for (let i=0; qs.some(q=>q.length); i++){ const q=qs[i%qs.length]; if (q.length) out.push(q.shift()); } return out; })();
+function twPlan(S, t, gid){ const keys=TW_ORDER.filter(k=>!gid || TWL[k].g===gid);
   const rev=keys.filter(k=>S.st[k] && S.st[k].due<=t && S.st[k].last!==t);
-  const usedNew=keys.filter(k=>S.st[k] && S.st[k].intro===t).length;
-  const fresh=keys.filter(k=>!S.st[k]).slice(0, gid? 99 : Math.max(0, W_NEW-usedNew));
+  const usedNew=Object.values(S.st).filter(r=>r.intro===t).length; const b=store.get('twBonus',{}); const extra=b.d===t? (+b.n||0) : 0;
+  const fresh=keys.filter(k=>!S.st[k]).slice(0, gid? 99 : Math.max(0, W_NEW+extra-usedNew));
   return {rev, fresh}; }
+function twMore(){ const t=today(); const b=store.get('twBonus',{}); store.set('twBonus',{d:t, n:(b.d===t? (+b.n||0) : 0)+10}); go('toeic',{session:true}); }
 function twGrade(S, k, ok, t){ const r=Object.assign({box:0, wrong:0, intro:t}, S.st[k]); r.last=t;
   if (ok){ r.box=Math.min(W_INT.length,(r.box||0)+1); r.due=addDays(t, W_INT[r.box-1]); } else { r.box=0; r.wrong=(r.wrong||0)+1; r.due=addDays(t,1); }
   S.st[k]=r; return S; }
 function twStats(S){ const ks=Object.keys(TWL); let seen=0, mem=0; ks.forEach(k=>{ const r=S.st[k]; if (r){ seen++; if ((r.box||0)>=3) mem++; } }); return {seen, mem, total:ks.length}; }
 function runWrite(host, gid){
   const t=today(); const S0=WQ.get(); const P=twPlan(S0, t, gid); const q=shuffle(P.rev).concat(P.fresh); const again=new Set(); let i=0, ok=0, miss=0; const missed=[];
-  if (!q.length){ host.append(el('div',{class:'note ok'}, '오늘 외울 문장 없음. 내일 다시.')); return; }
+  if (!q.length){ host.append(el('div',{class:'note ok'}, '오늘 외울 카드 없음. 내일 다시.'), gid? null : el('div',{class:'row task'}, el('button',{class:'btn sec',type:'button',onclick:twMore}, '새 카드 10장 더'))); return; }
   const prog=el('div',{class:'bar'}, el('i',{style:'width:0%'})); const hold=el('div',{class:'task'}); host.append(prog, hold);
   const finish=()=>{ document.onkeydown=null; hold.innerHTML=''; prog.firstChild.style.width='100%';
-    hold.append(el('div',{class:'note ok'}, `문장 ${ok+miss}개 끝. 외움 ${ok} · 헷갈림 ${miss}. 헷갈린 문장은 내일 다시 나옴.`),
-      missed.length? el('div',{class:'panel',style:'margin-top:12px'}, el('div',{class:'h5'}, '오늘 헷갈린 문장'), ...[...new Set(missed)].map(k=>el('p',{class:'small'}, TWL[k].en))) : null,
-      el('div',{class:'row task'}, el('button',{class:'btn ghost',type:'button',onclick:()=>go('toeic')}, '라이팅 탭으로'))); };
+    hold.append(el('div',{class:'note ok'}, `카드 ${ok+miss}장 끝. 외움 ${ok} · 헷갈림 ${miss}. 헷갈린 문장은 내일 다시 나옴.`),
+      missed.length? el('div',{class:'panel',style:'margin-top:12px'}, el('div',{class:'h5'}, '오늘 헷갈린 카드'), ...[...new Set(missed)].map(k=>el('p',{class:'small'}, TWL[k].en))) : null,
+      el('div',{class:'row task'}, gid? null : el('button',{class:'btn sec',type:'button',onclick:twMore}, '새 카드 10장 더'), el('button',{class:'btn ghost',type:'button',onclick:()=>go('toeic')}, '라이팅 탭으로'))); };
   const show=()=>{
     if (i>=q.length) return finish();
     const k=q[i], x=TWL[k], isAgain=again.has(k)&&q.indexOf(k)!==i, r=WQ.get().st[k]||{}; prog.firstChild.style.width=Math.round(i/q.length*100)+'%';
     const g=TWT.find(z=>z.id===x.g); const lv=r.box||0;
-    const meta=el('div',{class:'pos'}, g.title, ' · ', r.last? `복습 ${lv}단계` : '새 문장', lv>=2? ' · 힌트 없음' : '');
+    const meta=el('div',{class:'pos'}, g.part+' '+g.title, ' · ', r.last? `복습 ${lv}단계` : '새 문장', lv>=2? ' · 힌트 없음' : '');
     const cue=el('div',{style:'margin:12px 0 4px;font-size:18px;font-weight:600'}, x.ko);
     const hint=lv>=2? null : el('div',{class:'ex',style:'margin:8px 0;letter-spacing:.5px'}, lv===0? twHint(x.en) : twTokens(x.en).filter(w=>w[0]==='[').join(' · '));
     const ta=el('textarea',{rows:'3',placeholder:'영어로 써 보기 (입으로 말해도 됨, 대괄호 칸은 생략 가능)',style:'width:100%;margin-top:8px;padding:10px;border:1px solid var(--bd-base);border-radius:10px;background:var(--bg-raised)'});
@@ -2411,27 +2581,52 @@ function runWhole(host, gid){
       const avg=Math.round(sum/g.lines.length);
       out.append(el('div',{class:`note ${avg>=90?'ok':''}`}, `전체 일치 ${avg}%. 90% 넘으면 외운 것.`), ...rows); }}, '채점'), el('button',{class:'btn ghost',type:'button',onclick:()=>go('toeic')}, '그만하기')), out);
 }
+
+// 실전 연습: 실제 시간 제한 + 단어 수, 끝나면 체크리스트로 자가 점검
+function runPrac(host, idx){
+  const p=TW_PRAC[idx]; let left=p.min*60, timer=null; const clock=el('b',{}, ''); const wc=el('span',{class:'small'}, '0 단어');
+  const tick=()=>{ clock.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`; clock.style.color=left<=60? 'var(--fg-error)' : ''; };
+  const ta=el('textarea',{rows:p.type==='essay'?'18':'12',placeholder:'타이머 시작 후 작성',style:'width:100%;padding:10px;border:1px solid var(--bd-base);border-radius:10px;background:var(--bg-raised)'});
+  ta.oninput=()=>{ const n=(ta.value.match(/[A-Za-z0-9'’-]+/g)||[]).length; wc.textContent=`${n} 단어`+(p.type==='essay'? (n>=300? ' · 300 넘음' : ` · ${300-n} 남음`) : ''); };
+  const check=el('div',{class:'hidden task'});
+  const stop=()=>{ clearInterval(timer); timer=null; window.EXAM_CLEANUP=null; check.classList.remove('hidden'); };
+  const startB=el('button',{class:'btn',type:'button',onclick:()=>{ if (timer) return; startB.disabled=true; ta.focus(); timer=setInterval(()=>{ left--; tick(); if (left<=0){ stop(); toast('시간 끝'); } },1000); window.EXAM_CLEANUP=()=>{ clearInterval(timer); }; }}, '타이머 시작');
+  const items=p.type==='essay'? ['서론에서 입장을 분명히 밝힘','이유 2개, 각각 구체 예시','반론 인정 + 반박 문단','결론에서 의견 다시 정리','300단어 이상','관사·수일치·시제·철자 확인'] : ['지시문 과제 개수 모두 채움','과제마다 First/Second/Also 표시','질문은 물음표로 끝나는 의문문','날짜·시간·장소 등 구체 정보','호칭과 맺음말','같은 단어 반복 없음'];
+  check.append(el('div',{class:'h5'}, '자가 점검'), ...items.map(tx=>el('label',{style:'display:block;padding:4px 0'}, el('input',{type:'checkbox'}), ' ', tx)));
+  host.append(p.type==='mail'? el('div',{class:'panel'}, el('div',{class:'small'}, `From: ${p.from} · Subject: ${p.subj}`), el('p',{class:'ex',style:'color:var(--fg-base)'}, p.body), el('p',{}, el('b',{}, p.task)))
+      : el('div',{class:'panel'}, el('p',{class:'ex',style:'color:var(--fg-base)'}, p.q), el('p',{class:'small'}, '30분 · 300단어 이상')),
+    el('div',{class:'row task',style:'justify-content:space-between;align-items:center'}, el('div',{}, clock, ' ', wc), el('div',{class:'row',style:'gap:8px'}, startB, el('button',{class:'btn sec',type:'button',onclick:stop}, '제출'))), ta, check);
+  tick();
+}
 VIEWS.toeic = (arg)=>{
   topMeta(); const t=today();
-  if (arg && arg.session){ const g=arg.gid? TWT.find(z=>z.id===arg.gid) : null; const box=el('section',{class:'sec'}, sectionHead(g? g.title : '오늘 라이팅 문장', el('button',{class:'btn ghost sm',type:'button',onclick:()=>go('toeic')}, '그만하기'))); root.append(box); runWrite(box, arg.gid); return; }
-  if (arg && arg.whole){ const g=TWT.find(z=>z.id===arg.whole); const box=el('section',{class:'sec'}, sectionHead(g.title+' · 통으로 쓰기')); root.append(box); runWhole(box, arg.whole); return; }
+  if (arg && arg.session){ const g=arg.gid? TWT.find(z=>z.id===arg.gid) : null; const box=el('section',{class:'sec'}, sectionHead(g? g.part+' '+g.title : '오늘 라이팅 카드', el('button',{class:'btn ghost sm',type:'button',onclick:()=>go('toeic')}, '그만하기'))); root.append(box); runWrite(box, arg.gid); return; }
+  if (arg && arg.whole){ const g=TWT.find(z=>z.id===arg.whole); const box=el('section',{class:'sec'}, sectionHead(g.part+' '+g.title+' · 통으로 쓰기')); root.append(box); runWhole(box, arg.whole); return; }
+  if (arg && arg.prac!=null){ const p=TW_PRAC[arg.prac]; const box=el('section',{class:'sec'}, sectionHead((p.type==='mail'? 'Q6~7 이메일' : 'Q8 에세이')+' 실전', el('button',{class:'btn ghost sm',type:'button',onclick:()=>go('toeic')}, '그만하기'))); root.append(box); runPrac(box, arg.prac); return; }
   const S=WQ.get(); const P=twPlan(S,t); const n=P.rev.length+P.fresh.length; const K=twStats(S);
-  root.append(el('section',{class:'sec'}, sectionHead('오늘 토익 라이팅', el('span',{class:'small'}, 'TOEIC Writing 템플릿')),
+  root.append(el('section',{class:'sec'}, sectionHead('오늘 토익 라이팅', el('span',{class:'small'}, 'TOEIC Writing')),
     el('div',{class:'stats'},
       el('div',{class:'stat'}, el('div',{class:'v'}, P.rev.length), el('div',{class:'l'}, '복습')),
-      el('div',{class:'stat'}, el('div',{class:'v'}, P.fresh.length), el('div',{class:'l'}, '새 문장')),
+      el('div',{class:'stat'}, el('div',{class:'v'}, P.fresh.length), el('div',{class:'l'}, '새 카드')),
       el('div',{class:'stat'}, el('div',{class:'v'}, `${K.mem}/${K.total}`), el('div',{class:'l'}, '외움 (3단계 이상)')),
-      el('div',{class:'stat'}, el('div',{class:'v'}, `${K.seen}/${K.total}`), el('div',{class:'l'}, '본 문장'))),
-    el('div',{class:'row task'}, el('button',{class:'btn',type:'button',disabled:!n||null,onclick:()=>go('toeic',{session:true})}, n? `${n}문장 시작` : '오늘 분량 끝')),
-    el('p',{class:'small'}, `하루 새 문장 ${W_NEW}개 + 복습. 한국어 뜻을 보고 영어 문장을 떠올리기. 0단계는 첫 글자 힌트, 1단계는 채울 칸만, 2단계부터 힌트 없음. 써 보면 단어 일치율이 나옴. 헷갈린 문장은 몇 장 뒤에 한 번 더, 나머지는 1·2·4·7·14일 간격.`)));
-  root.append(el('section',{class:'sec'}, sectionHead('시험 구성'),
-    el('div',{class:'note'}, '총 8문항 60분. Q1~5 사진 보고 한 문장(8분) · Q6~7 이메일 답장(각 10분) · Q8 의견 에세이(30분, 300단어 이상).')));
+      el('div',{class:'stat'}, el('div',{class:'v'}, `${K.seen}/${K.total}`), el('div',{class:'l'}, '본 카드'))),
+    el('div',{class:'row task'}, el('button',{class:'btn',type:'button',disabled:!n||null,onclick:()=>go('toeic',{session:true})}, n? `${n}장 시작` : '오늘 분량 끝'), n? null : el('button',{class:'btn sec',type:'button',onclick:twMore}, '새 카드 10장 더')),
+    el('p',{class:'small'}, `하루 새 카드 ${W_NEW}장 + 복습. 파트가 섞여서 나옴. 한국어를 보고 영어를 떠올리기. 0단계는 첫 글자 힌트, 1단계는 채울 칸만, 2단계부터 힌트 없음. 써 보면 단어 일치율이 나옴. 헷갈린 카드는 몇 장 뒤에 한 번 더, 나머지는 1·2·4·7·14일 간격.`)));
+  root.append(el('section',{class:'sec'}, sectionHead('추천 공부 순서'),
+    el('ol',{class:'small'}, el('li',{}, '매일 카드 세션 (15분)'), el('li',{}, '외운 템플릿은 통으로 쓰기로 90% 넘을 때까지'), el('li',{}, '이틀에 한 번 실전 연습: 이메일 1개(10분) 또는 에세이 1개(30분)'), el('li',{}, '시험 전날 공략 노트의 체크리스트만 다시 보기'))));
+  root.append(el('section',{class:'sec'}, sectionHead('공략 노트', el('span',{class:'small'}, '누르면 펼침')),
+    ...TW_GUIDE.map(gd=>el('details',{}, el('summary',{}, gd.h), el('ul',{}, gd.t.map(tx=>el('li',{}, tx)))))));
+  let part='';
   TWT.forEach(g=>{ const st=S.st; const done=g.lines.filter(x=>(st[x.k]||{}).box>=3).length;
-    root.append(el('section',{class:'sec'}, sectionHead(g.title, el('span',{class:'small'}, `${g.meta} · 외움 ${done}/${g.lines.length}`)),
-      el('div',{class:'list'}, g.lines.map(x=>{ const ko=el('div',{class:'small'}, x.ko); return el('div',{class:'row',style:'align-items:flex-start;padding:6px 0;gap:8px'}, el('button',{class:'btn ghost sm',type:'button','aria-label':'듣기',onclick:()=>TTS.speak(x.en.replace(/\[[^\]]*\]/g,' '),'W',{rate:.9})}, '듣기'), el('div',{style:'flex:1'}, el('div',{class:'ex',style:'color:var(--fg-base)'}, x.en), ko)); })),
-      el('details',{}, el('summary',{}, '요령'), el('ul',{}, g.tips.map(tx=>el('li',{}, tx)))),
-      el('div',{class:'row task'}, el('button',{class:'btn sec sm',type:'button',onclick:()=>go('toeic',{session:true, gid:g.id})}, '이 템플릿만 외우기'), el('button',{class:'btn ghost sm',type:'button',onclick:()=>go('toeic',{whole:g.id})}, '통으로 쓰기'))));
+    if (g.part!==part){ part=g.part; root.append(el('h3',{class:'h5',style:'margin:24px 0 0'}, part==='단어'? '단어' : part)); }
+    root.append(el('section',{class:'sec'}, sectionHead(g.title, el('span',{class:'small'}, `${g.lines.length}개 · 외움 ${done}`)),
+      el('details',{}, el('summary',{}, `${g.meta} · 전체 보기`),
+        el('div',{class:'list'}, g.lines.map(x=>el('div',{class:'row',style:'align-items:flex-start;padding:6px 0;gap:8px'}, el('button',{class:'btn ghost sm',type:'button','aria-label':'듣기',onclick:()=>TTS.speak(x.en.replace(/\[[^\]]*\]/g,' '),'W',{rate:.9})}, '듣기'), el('div',{style:'flex:1'}, el('div',{class:'ex',style:'color:var(--fg-base)'}, x.en), el('div',{class:'small'}, x.ko)))))),
+      el('div',{class:'row task'}, el('button',{class:'btn sec sm',type:'button',onclick:()=>go('toeic',{session:true, gid:g.id})}, '이 묶음만 외우기'), g.part==='단어' || g.id==='q15v' || g.id==='link'? null : el('button',{class:'btn ghost sm',type:'button',onclick:()=>go('toeic',{whole:g.id})}, '통으로 쓰기'))));
   });
+  root.append(el('section',{class:'sec'}, sectionHead('실전 연습', el('span',{class:'small'}, '타이머 + 단어 수 + 자가 점검')),
+    el('div',{class:'list'}, TW_PRAC.map((p,i)=>el('button',{class:'btn ghost',type:'button',style:'width:100%;justify-content:flex-start;text-align:left;height:auto;padding:8px 12px',onclick:()=>go('toeic',{prac:i})},
+      el('span',{}, el('b',{}, p.type==='mail'? `이메일 · ${p.subj}` : 'Q8 에세이'), el('br'), el('span',{class:'small'}, p.type==="mail"? p.task : p.q)))))));
 };
 document.addEventListener('click',()=>TTS.unlock(),{capture:true});
 document.addEventListener('touchend',()=>TTS.unlock(),{capture:true});
