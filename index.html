@@ -2282,7 +2282,7 @@ function libScenario(b){ const s=el('div',{class:'panel guide'}); s.innerHTML=PL
 /* ---------- views: toeic (토익 라이팅: 템플릿·표현·단어 암기 SRS + 실전 연습, TOEFL 진도와 분리) ---------- */
 const TW_GUIDE = [
   {h:'시험 구성과 채점', t:[
-    '총 8문항 60분, 0~200점(10점 단위). 원점수 Q1~5 각 0~3 · Q6~7 각 0~4 · Q8 0~5, 합 28점을 환산',
+    '총 8문항 60분, 0~200점(10점 단위). 문항별 원점수 Q1~5 각 0~3 · Q6~7 각 0~4 · Q8 0~5를 200점 척도로 환산',
     '170~200: 모든 문항 성공 · 140~160: 의견 글은 약하지만 정보 전달과 문장은 성공 · 90~130: 의견 뒷받침이 제한적',
     'Q1~5 채점 = 문법 + 사진과의 연관성 · Q6~7 = 문장 질과 다양성, 어휘, 구성 · Q8 = 이유·예시 뒷받침, 문법, 어휘, 구성',
     '고득점 핵심은 화려한 표현이 아니라 감점 요소를 없애는 것: 지시문 과제 누락, 관사·수일치, 300단어 미달']},
@@ -2301,13 +2301,13 @@ const TW_GUIDE = [
   {h:'Q6~7 이메일 요령', t:[
     '지시문 마지막 줄이 채점 기준. ask TWO questions and make ONE request 같은 개수를 그대로 채우기',
     '과제마다 First, Second, Also, In addition 으로 표시해서 채점자가 바로 셀 수 있게',
-    '질문은 반드시 물음표로 끝나는 의문문 형태. 요청은 Could you please ~? / I would appreciate it if you could ~.',
+    '질문은 물음표 의문문 위주(I was wondering if ~ 같은 마침표 질문은 섞어서 한 번만). 요청은 Could you please ~? / I would appreciate it if you could ~.',
     '역할 확인: 내가 고객인지 직원인지, 받는 사람이 누구인지 먼저 파악',
     '구체적으로: 날짜, 시간, 장소, 숫자를 넣으면 막연한 답보다 점수가 높음 (sometime next week 대신 on Thursday at 2 p.m.)',
     '같은 단어 반복 피하기. ask를 세 번 쓰지 말고 would like to know, could you let me know, I was wondering if 로 돌려 쓰기',
     '반말·명령조 금지(ASAP, Hey). 기본틀은 외워 두되 상황 문장은 짧고 정확하게']},
   {h:'Q8 에세이 요령', t:[
-    '300단어 이상. 템플릿 약 150단어 + 이유 2개와 예시로 150단어 이상',
+    '300단어 이상. 템플릿 고정 부분은 약 80단어라 내 문장(이유 2개 + 예시)으로 220단어 이상 채워야 함',
     '구조: 서론(의견) → 본론1(이유 + 예시) → 본론2(이유 + 예시) → 반론 인정과 반박 → 결론',
     '첫 문단에서 입장을 분명히. 양쪽 다 좋다는 식의 애매한 입장은 감점',
     '예시는 내 경험(when I was working at ~) 또는 그럴듯한 조사 결과(according to a recent survey, about 70 percent of ~) 둘 중 하나',
@@ -2374,7 +2374,7 @@ const TWT = [
     {k:'mail-1', en:'Dear [Mr. Kim],', ko:'호칭 (이름 모르면 Dear Sir or Madam,)'},
     {k:'mail-2', en:'Thank you for your e-mail about [topic].', ko:'[주제] 관련 메일 감사'},
     {k:'mail-3', en:'I am writing in response to your e-mail regarding [topic].', ko:'목적: ~에 관한 메일에 답장 드림'},
-    {k:'mail-4', en:'First, I would like to know [what time the event starts].', ko:'첫째 질문: ~가 알고 싶음'},
+    {k:'mail-4', en:'First, could you tell me [what time the event starts]?', ko:'첫째 질문: ~ 알려 줄 수 있나'},
     {k:'mail-5', en:'Second, could you let me know whether [S + V]?', ko:'둘째 질문: ~인지 알려줄 수 있나'},
     {k:'mail-6', en:'Also, I would appreciate it if you could [V].', ko:'요청: ~해 주면 감사'},
     {k:'mail-7', en:'In addition, I suggest that you [V] because [reason].', ko:'제안: ~하기를 제안, 이유는'},
@@ -2383,7 +2383,7 @@ const TWT = [
     {k:'mail-10', en:'I look forward to hearing from you soon.', ko:'곧 답장 기다림'},
     {k:'mail-11', en:'Sincerely,', ko:'맺음말 (다음 줄에 이름)'}]},
   {id:'mail2', part:'Q6~7', title:'과제별 바꿔 끼우기', meta:'질문 · 요청 · 제안 · 정보 · 문제', lines:[
-    {k:'mail2-1', en:'I was wondering if [S + V].', ko:'질문 (공손): ~인지 궁금함'},
+    {k:'mail2-1', en:'I was wondering if [S + V].', ko:'질문 (공손): ~인지 궁금함. 마침표 질문이라 물음표 질문과 섞어 쓰기'},
     {k:'mail2-2', en:'Could you tell me how much [the fee] is?', ko:'질문: 비용이 얼마인지'},
     {k:'mail2-3', en:'Is there any parking available near [the venue]?', ko:'질문: 근처 주차 가능한지'},
     {k:'mail2-4', en:'Will [lunch] be provided during [the event]?', ko:'질문: 점심 제공되는지'},
@@ -2499,34 +2499,34 @@ const TWT = [
     {k:'voc-36', en:'be responsible for', ko:'~을 책임지다'}]}
 ];
 const TW_PRAC = [
-  {type:'mail', min:10, from:'Lisa Park, Event Coordinator', subj:'Annual Marketing Conference', body:'Thank you for registering for our annual marketing conference next month. We are happy to answer any questions you may have before the event.', task:'As a registered participant, respond to the e-mail. In your e-mail, ask TWO questions and make ONE request.'},
-  {type:'mail', min:10, from:'David Lee, Office Manager', subj:'Office Move', body:'As you know, our team will move to the new building on the 15th. I would like to hear your ideas to make the move go smoothly.', task:'Respond to the e-mail as a team member. In your e-mail, make TWO suggestions and ask ONE question.'},
-  {type:'mail', min:10, from:'Green Fitness Center', subj:'Membership Renewal', body:'Your membership will expire at the end of this month. Please let us know if you would like to renew it or if you have any concerns.', task:'Respond to the e-mail as a member. In your e-mail, describe ONE problem you had and make TWO requests.'},
-  {type:'mail', min:10, from:'Kevin Choi, Customer', subj:'Late Delivery', body:'I ordered three office chairs from your store two weeks ago, but they have not arrived yet. This is causing problems for my team.', task:'Respond to the e-mail as a customer service manager. In your e-mail, explain why the problem happened and offer TWO solutions.'},
+  {type:'mail', min:10, from:'Lisa Park, Event Coordinator', subj:'Annual Marketing Conference', body:'Thank you for registering for our annual marketing conference next month. We are happy to answer any questions you may have before the event.', task:'Respond to the e-mail as if you are a registered participant. In your e-mail, ask TWO questions and make ONE request.'},
+  {type:'mail', min:10, from:'David Lee, Office Manager', subj:'Office Move', body:'As you know, our team will move to the new building on the 15th. I would like to hear your ideas to make the move go smoothly.', task:'Respond to the e-mail as if you are a team member. In your e-mail, make TWO suggestions and ask ONE question.'},
+  {type:'mail', min:10, from:'Green Fitness Center', subj:'Membership Renewal', body:'Your membership will expire at the end of this month. Please let us know if you would like to renew it or if you have any concerns.', task:'Respond to the e-mail as if you are a member. In your e-mail, describe ONE problem you had and make TWO requests.'},
+  {type:'mail', min:10, from:'Kevin Choi, Customer', subj:'Late Delivery', body:'I ordered three office chairs from your store two weeks ago, but they have not arrived yet. This is causing problems for my team.', task:'Respond to the e-mail as if you are a customer service manager. In your e-mail, explain ONE reason for the delay and make TWO suggestions.'},
   {type:'essay', min:30, q:'Do you agree or disagree with the following statement? Working from home is more productive than working in an office. Give specific reasons and examples to support your opinion.'},
   {type:'essay', min:30, q:'Some people prefer to work for a large company, while others prefer to work for a small company. Which do you prefer and why? Give specific reasons and examples.'},
-  {type:'essay', min:30, q:'Do you agree or disagree? Companies should provide training programs for new employees. Use specific reasons and examples to support your answer.'},
+  {type:'essay', min:30, q:'Do you agree or disagree with the following statement? New employees learn more from on-the-job experience than from formal training programs. Give specific reasons and examples.'},
   {type:'essay', min:30, q:'What is the most important quality for a good manager? Choose one of the following: communication skills, experience, or decision-making ability. Give reasons and examples.'},
   {type:'essay', min:30, q:'Do you agree or disagree with the following statement? Technology has made people less social. Give specific reasons and examples.'},
   {type:'essay', min:30, q:'Some people think that students should get part-time jobs while they are in school. Do you agree or disagree? Give specific reasons and examples.'},
-  {type:'mail', min:10, from:'Sarah Kim, Human Resources', subj:'New Employee Orientation', body:'Welcome to Brightway Inc. Your orientation will take place next Monday. Please contact me if you need any information before your first day.', task:'Respond to the e-mail as a new employee. In your e-mail, ask THREE questions.'},
-  {type:'mail', min:10, from:'Riverside Hotel', subj:'Your Upcoming Stay', body:'Thank you for booking a room with us for the 12th to the 14th. We would like to make your stay as comfortable as possible.', task:'Respond to the e-mail as a guest. In your e-mail, make TWO requests and ask ONE question.'},
-  {type:'mail', min:10, from:'Tom Wilson, Branch Manager', subj:'Team Dinner', body:'I am planning a dinner to celebrate the success of our recent project. I would appreciate your ideas.', task:'Respond to the e-mail as a team member. In your e-mail, make TWO suggestions and give ONE piece of information.'},
+  {type:'mail', min:10, from:'Sarah Kim, Human Resources', subj:'New Employee Orientation', body:'Welcome to Brightway Inc. Your orientation will take place next Monday. Please contact me if you need any information before your first day.', task:'Respond to the e-mail as if you are a new employee. In your e-mail, ask TWO questions and make ONE request.'},
+  {type:'mail', min:10, from:'Riverside Hotel', subj:'Your Upcoming Stay', body:'Thank you for booking a room with us for the 12th to the 14th. We would like to make your stay as comfortable as possible.', task:'Respond to the e-mail as if you are a guest. In your e-mail, make TWO requests and ask ONE question.'},
+  {type:'mail', min:10, from:'Tom Wilson, Branch Manager', subj:'Team Dinner', body:'I am planning a dinner to celebrate the success of our recent project. I would appreciate your ideas.', task:'Respond to the e-mail as if you are a team member. In your e-mail, make TWO suggestions and give ONE piece of information.'},
   {type:'mail', min:10, from:'City Public Library', subj:'Volunteer Program', body:'Thank you for your interest in our volunteer program. We are looking for people who can help with our weekend children\'s reading sessions.', task:'Respond to the e-mail. In your e-mail, give TWO pieces of information about yourself and ask ONE question.'},
-  {type:'mail', min:10, from:'Jenny Park, Sales Representative', subj:'Office Supplies Order', body:'Thank you for your recent order of printer paper and ink cartridges. Your items will be shipped this week.', task:'Respond to the e-mail as the customer. In your e-mail, describe ONE problem with your order and make ONE request.'},
+  {type:'mail', min:10, from:'Jenny Park, Sales Representative', subj:'Office Supplies Order', body:'Thank you for your recent order of printer paper and ink cartridges. Your items will be shipped this week.', task:'Respond to the e-mail as the customer. In your e-mail, describe ONE problem with your order and make TWO requests.'},
   {type:'mail', min:10, from:'Mark Johnson, Training Coordinator', subj:'Computer Skills Workshop', body:'We are planning a computer skills workshop for staff next month. Please let me know what you would like it to cover.', task:'Respond to the e-mail. In your e-mail, make TWO suggestions about the workshop and ask ONE question.'},
-  {type:'mail', min:10, from:'Anna Lee, Property Manager', subj:'Apartment Maintenance', body:'Our maintenance team will inspect all apartments in your building next week. Please let me know if there is anything that needs repair.', task:'Respond to the e-mail as a resident. In your e-mail, describe TWO problems and ask ONE question.'},
+  {type:'mail', min:10, from:'Anna Lee, Property Manager', subj:'Apartment Maintenance', body:'Our maintenance team will inspect all apartments in your building next week. Please let me know if there is anything that needs repair.', task:'Respond to the e-mail as if you are a resident. In your e-mail, describe TWO problems and ask ONE question.'},
   {type:'mail', min:10, from:'Global Tech Conference', subj:'Call for Speakers', body:'We are inviting industry professionals to give presentations at this year\'s conference in October.', task:'Respond to the e-mail. In your e-mail, give ONE piece of information about your presentation topic and ask TWO questions.'},
-  {type:'mail', min:10, from:'Chris Han, Colleague', subj:'Covering My Shift', body:'I have a family event next Friday and need someone to cover my afternoon shift. Would you be able to help?', task:'Respond to the e-mail. In your e-mail, explain why you cannot cover the shift and make TWO suggestions.'},
-  {type:'mail', min:10, from:'Fresh Market Customer Service', subj:'Customer Survey', body:'We would like to improve our online grocery delivery service. Please share your experience with us.', task:'Respond to the e-mail as a customer. In your e-mail, give ONE positive comment, describe ONE problem, and make ONE suggestion.'},
-  {type:'mail', min:10, from:'Emily Clark, Real Estate Agent', subj:'Office Space for Rent', body:'Thank you for your interest in the office space on Main Street. I would be happy to arrange a viewing.', task:'Respond to the e-mail as a business owner. In your e-mail, ask TWO questions about the office and make ONE request.'},
+  {type:'mail', min:10, from:'Chris Han, Colleague', subj:'Covering My Shift', body:'I have a family event next Friday and need someone to cover my afternoon shift. Would you be able to help?', task:'Respond to the e-mail. In your e-mail, give ONE reason you cannot cover the shift and make TWO suggestions.'},
+  {type:'mail', min:10, from:'Fresh Market Customer Service', subj:'Customer Survey', body:'We would like to improve our online grocery delivery service. Please share your experience with us.', task:'Respond to the e-mail as if you are a customer. In your e-mail, describe ONE problem and make TWO suggestions.'},
+  {type:'mail', min:10, from:'Emily Clark, Real Estate Agent', subj:'Office Space for Rent', body:'Thank you for your interest in the office space on Main Street. I would be happy to arrange a viewing.', task:'Respond to the e-mail as if you are a business owner. In your e-mail, ask TWO questions about the office and make ONE request.'},
   {type:'mail', min:10, from:'James Moon, Department Head', subj:'Business Trip Report', body:'I heard that your business trip to Singapore went well. Could you send me a short update?', task:'Respond to the e-mail. In your e-mail, give TWO pieces of information about the trip and make ONE suggestion.'},
   {type:'essay', min:30, q:'Do you agree or disagree with the following statement? It is better to have a job with a high salary than a job you enjoy. Give specific reasons and examples to support your opinion.'},
   {type:'essay', min:30, q:'Some people prefer to work in a team, while others prefer to work alone. Which do you prefer and why? Give specific reasons and examples.'},
   {type:'essay', min:30, q:'Do you agree or disagree? Companies should allow employees to wear casual clothes at work. Give specific reasons and examples.'},
   {type:'essay', min:30, q:'What is the most effective way to learn a new skill? Choose one: taking a class, learning from a coworker, or studying online. Give reasons and examples.'},
   {type:'essay', min:30, q:'Do you agree or disagree with the following statement? Meetings in person are more effective than online meetings. Give specific reasons and examples.'},
-  {type:'essay', min:30, q:'Some people think that it is better to stay at one company for a long time. Others think that it is better to change jobs often. Which view do you agree with and why?'},
+  {type:'essay', min:30, q:'Some people think that it is better to stay at one company for a long time. Others think that it is better to change jobs often. Which view do you agree with and why? Give specific reasons and examples to support your opinion.'},
   {type:'essay', min:30, q:'Do you agree or disagree? Young people should travel abroad before they start working. Give specific reasons and examples.'},
   {type:'essay', min:30, q:'What is the most important factor when choosing a job? Choose one: salary, location, or opportunities for promotion. Give reasons and examples.'},
   {type:'essay', min:30, q:'Do you agree or disagree with the following statement? Companies should spend more money on employee health and wellness programs. Give reasons and examples.'},
@@ -2551,7 +2551,7 @@ function twWords(s){ return String(s||'').replace(/\[[^\]]*\]/g,' ').toLowerCase
 function twScore(target, typed){ const T=twWords(target), U=twWords(typed); if (!T.length) return {pct:100, miss:[]}; const pool=U.slice(); const miss=[]; let hit=0;
   T.forEach(w=>{ const j=pool.indexOf(w); if (j>=0){ hit++; pool.splice(j,1); } else miss.push(w); }); return {pct:Math.round(hit/T.length*100), miss}; }
 // 새 카드는 묶음끼리 번갈아 (묶음 안에서는 순서대로) 나와서 하루에 파트가 섞임
-const TW_ORDER=(()=>{ const qs=TWT.map(g=>g.lines.map(x=>x.k)); const out=[]; for (let i=0; qs.some(q=>q.length); i++){ const q=qs[i%qs.length]; if (q.length) out.push(q.shift()); } return out; })();
+const TW_ORDER=(()=>{ const gs=TWT.filter(g=>g.part!=='단어'); const qs=gs.map(g=>g.lines.map(x=>x.k)); const out=[]; for (let i=0; qs.some(q=>q.length); i++){ const q=qs[i%qs.length]; if (q.length) out.push(q.shift()); } TWT.filter(g=>g.part==='단어').forEach(g=>g.lines.forEach(x=>out.push(x.k))); return out; })();
 function twPlan(S, t, gid){ const keys=TW_ORDER.filter(k=>!gid || TWL[k].g===gid);
   const rev=keys.filter(k=>S.st[k] && S.st[k].due<=t && S.st[k].last!==t);
   const usedNew=Object.values(S.st).filter(r=>r.intro===t).length; const b=store.get('twBonus',{}); const extra=b.d===t? (+b.n||0) : 0;
@@ -2610,70 +2610,74 @@ function runWhole(host, gid){
 
 // 사진 문제: 사진은 Wikimedia Commons CC0·퍼블릭 도메인, 제시어와 모범 답안은 직접 작성. 5장이 한 세트(실제 시험과 같은 8분)
 const TW_PIC = [
-  {img:'tw-img/p1.jpg', w:['write','while'], a:['A man is writing in a notebook while his laptop is open on the desk.','While the man is writing something, a laptop is open in front of him.']},
+  {img:'tw-img/p1.jpg', w:['write','while'], a:['A man is holding a pencil to write in his notebook while his laptop is open.','While the man is getting ready to write, his laptop is open on the desk.']},
   {img:'tw-img/p2.jpg', w:['necklace','type'], a:['A woman wearing a necklace is typing on her laptop.','The woman is typing on a laptop, and she is wearing a large necklace.']},
-  {img:'tw-img/p3.jpg', w:['through','work'], a:['We can see some people working at their desks through a large window.','Through the window, several people are working at long tables.']},
+  {img:'tw-img/p3.jpg', w:['through','work'], a:['Three people are working at a long table, and we can see them through a large window.','Through the window, we can see several people working on their laptops.']},
   {img:'tw-img/p4.jpg', w:['headphones','place'], a:['Two pairs of headphones have been placed on the wooden table.','Some headphones are placed on the table while two people stand in the kitchen.']},
-  {img:'tw-img/p5.jpg', w:['walk','past'], a:['A woman is walking past a large poster on the wall.','A person carrying a bag is walking past a huge advertisement.']},
+  {img:'tw-img/p5.jpg', w:['walk','past'], a:['A person is walking past a large advertisement painted on the wall.','A person carrying a bag is walking past a huge advertisement.']},
   {img:'tw-img/p6.jpg', w:['because','coat'], a:['Because it is snowing, the woman is wearing a heavy coat.','The woman is wearing a warm coat because it is cold and snowy.']},
   {img:'tw-img/p7.jpg', w:['plate','next to'], a:['A plate of bread has been placed next to a vase of flowers.','There is a plate on the table next to a small vase.']},
-  {img:'tw-img/p8.jpg', w:['behind','counter'], a:['Several workers are preparing drinks behind the counter.','Some people are working behind a long counter in a cafe.']},
+  {img:'tw-img/p8.jpg', w:['behind','counter'], a:['Several people are standing behind the counter in a restaurant.','There are many bottles and glasses on the counter, and some people are standing behind it.']},
   {img:'tw-img/p9.jpg', w:['sell','vegetables'], a:['Some people are selling vegetables at an outdoor market.','Many vegetables are being sold at a busy market.']},
   {img:'tw-img/p10.jpg', w:['fruit','display'], a:['Many kinds of fruit and vegetables are displayed in large piles.','Fresh fruit is being displayed at a market stall.']},
   {img:'tw-img/p11.jpg', w:['pan','some'], a:['A frying pan and some spices have been placed on the wooden table.','There are some small bowls of spices next to a black pan.']},
-  {img:'tw-img/p12.jpg', w:['ride','along'], a:['A man is riding a bicycle along the street.','A young man is riding his bike along a stone building.']},
+  {img:'tw-img/p12.jpg', w:['ride','along'], a:['A man is riding a bicycle along the street.','A young man is riding his bike along the road in front of a stone building.']},
   {img:'tw-img/p13.jpg', w:['mask','stand'], a:['Some people wearing masks are standing on the sidewalk.','A group of people with masks is standing near the street.']},
-  {img:'tw-img/p14.jpg', w:['because','closed'], a:['Because of the construction, the street is closed to pedestrians.','The road is closed because workers are repairing it.']},
+  {img:'tw-img/p14.jpg', w:['because','closed'], a:['The street is closed to pedestrians because it is under construction.','Because the road is being repaired, it is closed to people on foot.']},
   {img:'tw-img/p15.jpg', w:['carry','tray'], a:['A man is carrying a tray full of dishes.','A smiling man is carrying a large tray of food.']}
 ];
-// 자동 점검: 제시어 포함(어간 4글자 기준), 한 문장, 대문자 시작, 마침표 끝
-function twPicCheck(ans, words){ const s=ans.trim(), low=' '+s.toLowerCase().replace(/[^a-z\s]/g,' ')+' '; const out=[];
+// 자동 점검: 제시어 포함(변형·불규칙 허용, 단어 경계 기준), 한 문장, 대문자 시작, 마침표 끝
+const TW_IRR={sell:['sold'], ride:['rode','ridden'], write:['wrote','written'], stand:['stood'], carry:['carries','carried'], buy:['bought'], hold:['held'], sit:['sat','sitting'], put:['putting'], wear:['wore','worn'], take:['took','taken'], leave:['left'], make:['made'], go:['went','gone']};
+function twForms(w){ const e=w.endsWith('e')? w.slice(0,-1) : w; return [w, w+'s', w+'es', w+'ed', w+'d', w+'ing', e+'ing', e+'ed', w+'er', w+'ers', e+'er', e+'ers', w.replace(/y$/,'ies'), w.replace(/y$/,'ied'), ...(TW_IRR[w]||[])]; }
+function twPicCheck(ans, words){ const s=ans.trim(), toks=s.toLowerCase().match(/[a-z]+/g)||[]; const out=[];
   if (!s) return [['빈칸', false]];
-  words.forEach(w=>{ const parts=w.toLowerCase().split(' '); const ok=parts.every(p=>{ const st=p.length>4? p.slice(0,4) : p; return p.length<=4? low.includes(' '+p+' ') || low.includes(' '+p+'s ') || low.includes(' '+p+'ed ') || low.includes(' '+p+'ing ') || (p==='some' && low.includes(' some')) : low.includes(' '+st); }); out.push([`'${w}' 사용`, ok]); });
-  const ends=(s.match(/[.!?](\s|$)/g)||[]).length; out.push(['한 문장', ends<=1]); out.push(['대문자로 시작', /^[A-Z]/.test(s)]); out.push(['마침표로 끝', /[.]$/.test(s)]);
+  words.forEach(w=>{ const parts=w.toLowerCase().split(' '); let ok;
+    if (parts.length>1) ok=(' '+toks.join(' ')+' ').includes(' '+parts.join(' ')+' ');
+    else { const f=new Set(twForms(parts[0])); ok=toks.some(t=>f.has(t)); }
+    out.push([`'${w}' 사용`, ok]); });
+  const splits=(s.replace(/\b(Mr|Mrs|Ms|Dr)\./g,'$1').match(/[.!?]\s*[A-Z]/g)||[]).length; out.push(['한 문장', splits===0]); out.push(['대문자로 시작', /^[A-Z]/.test(s)]); out.push(['마침표로 끝', /\.$/.test(s)]);
   return out; }
 function runPic(host, set){
-  const items=TW_PIC.slice(set*5, set*5+5); let left=8*60, timer=null; const clock=el('b',{}, '8:00');
-  const tick=()=>{ clock.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`; clock.style.color=left<=60? 'var(--fg-error)' : ''; };
+  const items=TW_PIC.slice(set*5, set*5+5); const clock=el('span',{class:'timer'}); const timer=makeTimer(8*60, clock, ()=>{ toast('시간 끝'); grade(); }); let started=false;
   const tas=items.map(()=>el('input',{type:'text',placeholder:'한 문장으로',autocapitalize:'sentences',style:'width:100%;padding:10px;border:1px solid var(--bd-base);border-radius:10px;background:var(--bg-raised);margin-top:8px'}));
-  const res=items.map(()=>el('div',{class:'hidden',style:'margin-top:8px'}));
+  const res=items.map(()=>el('div',{class:'hidden',role:'status',style:'margin-top:8px'}));
   let graded=false;
-  const grade=()=>{ if (graded) return; graded=true; clearInterval(timer); timer=null; window.EXAM_CLEANUP=null; let pass=0;
-    items.forEach((it,i)=>{ const ck=twPicCheck(tas[i].value, it.w); const ok=ck.every(c=>c[1]); if (ok) pass++; tas[i].disabled=true;
+  const grade=()=>{ if (graded) return; if (!started && !tas.some(x=>x.value.trim())){ toast('먼저 8분 시작'); return; } graded=true; timer.stop(); let pass=0;
+    items.forEach((it,i)=>{ const ck=twPicCheck(tas[i].value, it.w); const ok=ck.every(c=>c[1]); if (ok) pass++; tas[i].readOnly=true;
       res[i].append(el('div',{class:'small'}, ...ck.map(([l,v])=>el('span',{style:`margin-right:10px;color:${v?'var(--fg-success)':'var(--fg-error)'}`}, (v?'✓ ':'✗ ')+l))),
         el('div',{class:'small',style:'margin-top:6px'}, '모범 답안'), ...it.a.map(x=>el('div',{class:'ex',style:'color:var(--fg-base)'}, x)));
       res[i].classList.remove('hidden'); });
-    const d=store.get('twPic',{}); d[set]=today(); store.set('twPic',d);
+    if (tas.some(x=>x.value.trim())){ const d=store.get('twPic',{}); d[set]=today(); store.set('twPic',d); }
     sum.textContent=`형식 통과 ${pass}/5. 문법과 사진 내용은 모범 답안과 비교해서 직접 확인`; sum.classList.remove('hidden'); };
-  const sum=el('div',{class:'note hidden'});
-  const startB=el('button',{class:'btn',type:'button',onclick:()=>{ if (timer||graded) return; startB.disabled=true; tas[0].focus(); timer=setInterval(()=>{ left--; tick(); if (left<=0){ toast('시간 끝'); grade(); } },1000); window.EXAM_CLEANUP=()=>clearInterval(timer); }}, '8분 시작');
+  const sum=el('div',{class:'note hidden',role:'status'});
+  const startB=el('button',{class:'btn',type:'button',onclick:()=>{ if (started||graded) return; started=true; startB.disabled=true; tas[0].focus(); timer.start(); }}, '8분 시작');
   host.append(el('div',{class:'row task',style:'justify-content:space-between;align-items:center'}, el('div',{}, clock, el('span',{class:'small'}, ' · 다섯 문제 합쳐 8분')), el('div',{class:'row',style:'gap:8px'}, startB, el('button',{class:'btn sec',type:'button',onclick:grade}, '제출'))),
     ...items.map((it,i)=>el('div',{class:'panel',style:'margin-top:12px'}, el('div',{class:'small'}, `Question ${i+1}`),
       el('img',{src:it.img, alt:'사진 '+(i+1), loading:'lazy', style:'width:100%;border-radius:8px;margin-top:6px;display:block'}),
       el('div',{style:'margin-top:8px;font-weight:600;text-align:center'}, it.w.join(' / ')), tas[i], res[i])), sum,
     el('p',{class:'small'}, '사진: Wikimedia Commons (CC0·퍼블릭 도메인)'));
-  tick();
 }
 // 실전 연습: 실제 시간 제한 + 단어 수, 끝나면 체크리스트로 자가 점검
 function runPrac(host, idx){
-  const p=TW_PRAC[idx]; let left=p.min*60, timer=null; const clock=el('b',{}, ''); const wc=el('span',{class:'small'}, '0 단어');
-  const tick=()=>{ clock.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`; clock.style.color=left<=60? 'var(--fg-error)' : ''; };
+  const p=TW_PRAC[idx]; const clock=el('span',{class:'timer'}); const wc=el('span',{class:'small'}, '0 단어'); let done=false, started=false;
+  const timer=makeTimer(p.min*60, clock, ()=>{ toast('시간 끝'); stop(); });
   const ta=el('textarea',{rows:p.type==='essay'?'18':'12',placeholder:'타이머 시작 후 작성',style:'width:100%;padding:10px;border:1px solid var(--bd-base);border-radius:10px;background:var(--bg-raised)'});
   ta.oninput=()=>{ const n=(ta.value.match(/[A-Za-z0-9'’-]+/g)||[]).length; wc.textContent=`${n} 단어`+(p.type==='essay'? (n>=300? ' · 300 넘음' : ` · ${300-n} 남음`) : ''); };
   const check=el('div',{class:'hidden task'});
-  const stop=()=>{ const d=store.get('twPrac',{}); d[idx]=today(); store.set('twPrac',d); clearInterval(timer); timer=null; window.EXAM_CLEANUP=null; check.classList.remove('hidden'); };
-  const startB=el('button',{class:'btn',type:'button',onclick:()=>{ if (timer) return; startB.disabled=true; ta.focus(); timer=setInterval(()=>{ left--; tick(); if (left<=0){ stop(); toast('시간 끝'); } },1000); window.EXAM_CLEANUP=()=>{ clearInterval(timer); }; }}, '타이머 시작');
+  const stop=()=>{ if (done) return; done=true; timer.stop(); ta.readOnly=true; if (ta.value.trim()){ const d=store.get('twPrac',{}); d[idx]=today(); store.set('twPrac',d); } check.classList.remove('hidden'); };
+  const startB=el('button',{class:'btn',type:'button',onclick:()=>{ if (started||done) return; started=true; startB.disabled=true; ta.focus(); timer.start(); }}, '타이머 시작');
   const items=p.type==='essay'? ['서론에서 입장을 분명히 밝힘','이유 2개, 각각 구체 예시','반론 인정 + 반박 문단','결론에서 의견 다시 정리','300단어 이상','관사·수일치·시제·철자 확인'] : ['지시문 과제 개수 모두 채움','과제마다 First/Second/Also 표시','질문은 물음표로 끝나는 의문문','날짜·시간·장소 등 구체 정보','호칭과 맺음말','같은 단어 반복 없음'];
   check.append(el('div',{class:'h5'}, '자가 점검'), ...items.map(tx=>el('label',{style:'display:block;padding:4px 0'}, el('input',{type:'checkbox'}), ' ', tx)));
   host.append(p.type==='mail'? el('div',{class:'panel'}, el('div',{class:'small'}, `From: ${p.from} · Subject: ${p.subj}`), el('p',{class:'ex',style:'color:var(--fg-base)'}, p.body), el('p',{}, el('b',{}, p.task)))
       : el('div',{class:'panel'}, el('p',{class:'ex',style:'color:var(--fg-base)'}, p.q), el('p',{class:'small'}, '30분 · 300단어 이상')),
     el('div',{class:'row task',style:'justify-content:space-between;align-items:center'}, el('div',{}, clock, ' ', wc), el('div',{class:'row',style:'gap:8px'}, startB, el('button',{class:'btn sec',type:'button',onclick:stop}, '제출'))), ta, check);
-  tick();
 }
 VIEWS.toeic = (arg)=>{
   topMeta(); const t=today();
   if (arg && arg.session){ const g=arg.gid? TWT.find(z=>z.id===arg.gid) : null; const box=el('section',{class:'sec'}, sectionHead(g? g.part+' '+g.title : '오늘 라이팅 카드', el('button',{class:'btn ghost sm',type:'button',onclick:()=>go('toeic')}, '그만하기'))); root.append(box); runWrite(box, arg.gid); return; }
   if (arg && arg.whole){ const g=TWT.find(z=>z.id===arg.whole); const box=el('section',{class:'sec'}, sectionHead(g.part+' '+g.title+' · 통으로 쓰기')); root.append(box); runWhole(box, arg.whole); return; }
+  if (arg && arg.pic!=null && !TW_PIC[arg.pic*5]) arg=null;
+  if (arg && arg.prac!=null && !TW_PRAC[arg.prac]) arg=null;
   if (arg && arg.pic!=null){ const box=el('section',{class:'sec'}, sectionHead(`Q1~5 사진 세트 ${arg.pic+1}`, el('button',{class:'btn ghost sm',type:'button',onclick:()=>go('toeic')}, '그만하기'))); root.append(box); runPic(box, arg.pic); return; }
   if (arg && arg.prac!=null){ const p=TW_PRAC[arg.prac]; const box=el('section',{class:'sec'}, sectionHead((p.type==='mail'? 'Q6~7 이메일' : 'Q8 에세이')+' 실전', el('button',{class:'btn ghost sm',type:'button',onclick:()=>go('toeic')}, '그만하기'))); root.append(box); runPrac(box, arg.prac); return; }
   const S=WQ.get(); const P=twPlan(S,t); const n=P.rev.length+P.fresh.length; const K=twStats(S);
